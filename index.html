@@ -1,0 +1,3276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="A cozy one-thumb puzzle: weave a nest around Erwu the cat, layer by layer, one night at a time.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nest">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EFE2D6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Figtree:wght@400..700&display=swap">
+<style>
+  /* A lamp-lit evening: oat blanket, straw nest, wool and felt. One light look. */
+  :root {
+    --ground: #EFE2D6;
+    --card: #FBF4EC;
+    --ink: #4A3B36;
+    --ink-soft: #8C7A72;
+    --lav: #B49CDA;
+    --lav-deep: #8B73B3;
+    --thread: #C98F8F;
+    --chip: rgba(255, 249, 243, 0.78);
+    --hairline: rgba(74, 59, 54, 0.12);
+    --hand: "Gaegu", "Chalkboard SE", "Comic Sans MS", ui-rounded, cursive;
+    --font: "Figtree", ui-rounded, system-ui, sans-serif;
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --pinked: linear-gradient(#000 0 0) center / calc(100% - 12px) 100% no-repeat,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10' preserveAspectRatio='none'%3E%3Cpath d='M6 0V10L0 5Z'/%3E%3C/svg%3E") left top / 6px 10px repeat-y,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10' preserveAspectRatio='none'%3E%3Cpath d='M0 0V10L6 5Z'/%3E%3C/svg%3E") right top / 6px 10px repeat-y;
+    color-scheme: light;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  #c { position: fixed; inset: 0; width: 100vw; height: 100%; display: block; touch-action: none; }
+
+  #app {
+    position: relative;
+    height: 100%;
+    box-sizing: border-box;
+    padding-inline: 16px;
+    padding-block: 6px 6px;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    max-width: 520px;
+    margin-inline: auto;
+    pointer-events: none;
+  }
+  #app button { pointer-events: auto; }
+
+  header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+    padding-top: 4px;
+  }
+  /* Everything up here is made from the same things as the nest: linen, kraft paper, thread and buttons */
+  .label-wrap { filter: drop-shadow(0 2px 0 rgba(74, 59, 54, 0.08)) drop-shadow(0 5px 7px rgba(74, 59, 54, 0.12)); }
+  /* a woven linen label with pinked edges, like the one sewn into a blanket */
+  .linen {
+    position: relative;
+    background-color: #F8F1E7;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(150, 118, 92, 0.07) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(150, 118, 92, 0.06) 0 1px, transparent 1px 3px);
+    -webkit-mask: var(--pinked);
+    mask: var(--pinked);
+  }
+  .linen::after {
+    content: "";
+    position: absolute;
+    inset: 5px 12px;
+    border: 1.5px dashed var(--lav);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .score-wrap { transform: rotate(1.5deg); }
+  .score { padding: 9px 26px 6px; text-align: center; min-width: 92px; }
+  .score b {
+    display: block;
+    font-family: var(--hand);
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 0.9;
+    font-variant-numeric: tabular-nums;
+  }
+  .score span { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .score-wrap.bump { animation: bump 380ms var(--ease-out); }
+  /* a kraft paper tag on a bit of twine */
+  .best-wrap {
+    justify-self: start;
+    position: relative;
+    margin: 14px 0 0 2px;
+    transform: rotate(-5deg);
+  }
+  .kraft {
+    position: relative;
+    padding: 7px 13px 6px 25px;
+    background-color: #DCC09A;
+    background-image:
+      radial-gradient(rgba(120, 84, 48, 0.2) 0.6px, transparent 1px),
+      radial-gradient(rgba(255, 246, 228, 0.4) 0.6px, transparent 1px);
+    background-size: 7px 7px, 11px 11px;
+    background-position: 0 0, 3px 5px;
+    clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px), 0 12px);
+    font-size: 12px;
+    color: #6B5443;
+    line-height: 1;
+    text-align: center;
+  }
+  .kraft::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border-radius: 50%;
+    background: #E6D9CA;
+    box-shadow: 0 0 0 2px #C4A274;
+  }
+  .kraft b { display: block; font-family: var(--hand); font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1; margin-top: 2px; }
+  .twine { position: absolute; left: 0; bottom: 50%; width: 30px; height: 70px; overflow: visible; pointer-events: none; }
+  .tools { display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px; }
+  /* big fabric-covered sewing buttons */
+  .icon-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 30%, #FFF9F1, #EEDFCB 68%, #E0CAB0);
+    box-shadow: inset 0 0 0 1px rgba(150, 118, 92, 0.25), 0 2px 0 rgba(74, 59, 54, 0.12), 0 5px 10px rgba(74, 59, 54, 0.12);
+    color: var(--ink-soft);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 160ms var(--ease-out), color 160ms var(--ease-out);
+  }
+  .icon-btn::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    box-shadow: inset 0 1.5px 2px rgba(74, 59, 54, 0.16), 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  .icon-btn::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 1px dashed rgba(139, 115, 179, 0.45);
+  }
+  .icon-btn:active { transform: scale(0.93); }
+  .icon-btn[aria-pressed="true"], .icon-btn.armed {
+    color: var(--ink);
+    background: radial-gradient(circle at 38% 30%, #FAF6FF, #E2D7F2 68%, #D1C2EA);
+  }
+  .icon-btn svg { position: relative; width: 19px; height: 19px; }
+
+  #stage { position: relative; min-height: 0; }
+  footer { display: grid; }
+  #tray { height: 128px; }
+  /* hints arrive on a little slip of paper, taped down */
+  #hint {
+    position: relative;
+    justify-self: center;
+    max-width: calc(100% - 32px);
+    box-sizing: border-box;
+    margin: 0;
+    min-height: 24px;
+    padding: 3px 14px 2px;
+    font-family: var(--hand);
+    font-size: 17px;
+    line-height: 1.1;
+    color: var(--ink-soft);
+    text-align: center;
+    text-wrap: balance;
+    background: #FBF7EF;
+    box-shadow: 0 1px 0 rgba(74, 59, 54, 0.08), 0 3px 8px rgba(74, 59, 54, 0.1);
+    transform: rotate(-0.8deg);
+  }
+  #hint::before {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: -4px;
+    width: 26px;
+    height: 10px;
+    background: rgba(201, 183, 230, 0.75);
+    transform: rotate(-28deg);
+  }
+  #hint:empty { visibility: hidden; }
+
+  /* a news-of-the-night patch, embroidered with a satin-stitch edge */
+  #toast {
+    position: fixed;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 96px);
+    transform: translateX(-50%) rotate(-1.5deg);
+    padding: 9px 26px 7px;
+    text-align: center;
+    animation: drop 520ms var(--ease-out);
+    pointer-events: none;
+    white-space: nowrap;
+    border: 4px solid transparent;
+    border-radius: 999px;
+    background:
+      repeating-linear-gradient(0deg, rgba(150, 118, 92, 0.06) 0 1px, transparent 1px 3px) padding-box,
+      linear-gradient(#F8F0E4, #F8F0E4) padding-box,
+      repeating-linear-gradient(60deg, #8B73B3 0 1.6px, #B49CDA 1.6px 3.2px) border-box;
+    box-shadow: 0 3px 0 rgba(74, 59, 54, 0.08), 0 8px 16px rgba(74, 59, 54, 0.14);
+  }
+  #toast::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1.5px dashed var(--thread);
+    border-radius: 999px;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  #toast span { display: block; font-size: 12.5px; color: var(--ink-soft); }
+  #toast .bloom { position: absolute; width: 26px; height: 26px; }
+  #toast .b1 { left: -12px; top: -12px; }
+  #toast .b2 { right: -10px; bottom: -12px; }
+  #toast b { display: block; font-family: var(--hand); font-size: 26px; font-weight: 700; line-height: 1; }
+
+  #over, .sheet {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(60, 48, 70, 0.28);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: fade 600ms var(--ease-out);
+    overflow-y: auto;
+  }
+  /* the goodnight card: kraft paper, with a photo of tonight's nest taped on */
+  .card {
+    position: relative;
+    width: min(100%, 330px);
+    box-sizing: border-box;
+    padding: 26px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-radius: 4px;
+    background-color: #E2C9A3;
+    background-image:
+      radial-gradient(rgba(120, 84, 48, 0.16) 0.7px, transparent 1.1px),
+      radial-gradient(rgba(255, 246, 228, 0.35) 0.7px, transparent 1.1px),
+      repeating-linear-gradient(35deg, rgba(255, 244, 222, 0.1) 0 1px, transparent 1px 9px);
+    background-size: 8px 8px, 13px 13px, auto;
+    background-position: 0 0, 4px 6px, 0 0;
+    box-shadow: 0 2px 0 rgba(74, 59, 54, 0.1), 0 16px 34px rgba(60, 48, 70, 0.26);
+    transform: rotate(-0.8deg);
+    animation: rise 620ms var(--ease-out);
+  }
+  .polaroid {
+    position: relative;
+    margin: 0 0 4px;
+    padding: 10px 10px 30px;
+    background: #FFFDF8;
+    box-shadow: 0 2px 4px rgba(74, 59, 54, 0.18), 0 8px 16px rgba(74, 59, 54, 0.12);
+    transform: rotate(2.2deg);
+  }
+  .polaroid canvas { display: block; width: 188px; height: 188px; }
+  .polaroid figcaption { position: absolute; left: 0; right: 0; bottom: 6px; font-family: var(--hand); font-size: 18px; color: var(--ink-soft); }
+  .tape {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    width: 72px;
+    height: 22px;
+    margin-left: -36px;
+    background: rgba(201, 183, 230, 0.72);
+    transform: rotate(-4deg);
+    -webkit-mask: var(--pinked);
+    mask: var(--pinked);
+  }
+  .card h2 { margin: 12px 0 0; font-family: var(--hand); font-size: 34px; font-weight: 700; line-height: 1; }
+  .card .big { font-family: var(--hand); font-size: 58px; font-weight: 700; line-height: 0.95; margin-top: 4px; }
+  .card p { margin: 2px 0 0; color: #6B5443; font-size: 15px; }
+  .card .newbest { color: var(--lav-deep); font-weight: 600; }
+  .gallery { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+  .gallery img { width: 44px; height: 44px; border: 3px solid #FFFDF8; border-bottom-width: 8px; box-shadow: 0 2px 5px rgba(74, 59, 54, 0.2); transform: rotate(-3deg); }
+  .gallery img:nth-child(even) { transform: rotate(2.5deg); }
+  .card button {
+    position: relative;
+    margin-top: 16px;
+    width: 100%;
+    height: 54px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--lav-deep);
+    color: #FFF9F2;
+    font: 700 17px/1 var(--font);
+    outline: 1.5px dashed rgba(255, 249, 242, 0.6);
+    outline-offset: -6px;
+    box-shadow: 0 2px 0 rgba(74, 59, 54, 0.18);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .card button:active { transform: scale(0.98); }
+  button:focus-visible { outline: 2px solid var(--lav-deep); outline-offset: 2px; }
+
+  /* while the story opens, the game's own furniture waits out of sight */
+  #app header, #app footer { transition: opacity 700ms var(--ease-out); }
+  #app.away header, #app.away footer { opacity: 0; }
+  #app.away button { pointer-events: none; }
+
+  /* the landing page: the opening of a bedtime story */
+  #title {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(env(safe-area-inset-top, 0px) + 6vh) 24px calc(env(safe-area-inset-bottom, 0px) + 4.5vh);
+    box-sizing: border-box;
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 600ms var(--ease-out);
+    text-shadow: 0 1px 14px rgba(255, 246, 232, 0.9);
+  }
+  #title.leaving { opacity: 0; }
+  #title .once { margin: 0; font-family: var(--hand); font-size: 19px; color: #7E6A63; }
+  #title h1 { margin: 2px 0 0; font-family: var(--hand); font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); }
+  #title .story { display: flex; flex-direction: column; align-items: center; max-width: 340px; }
+  #title .story p { margin: 0; font-family: var(--hand); font-size: 23px; line-height: 1.2; color: var(--ink); text-wrap: balance; }
+  #title .story .soft { color: #7E6A63; font-size: 20px; margin-top: 2px; }
+  #begin {
+    pointer-events: auto;
+    margin-top: 18px;
+    width: min(78vw, 280px);
+    height: 56px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--lav-deep);
+    color: #FFF9F2;
+    font: 700 18px/1 var(--font);
+    text-shadow: none;
+    outline: 1.5px dashed rgba(255, 249, 242, 0.6);
+    outline-offset: -6px;
+    box-shadow: 0 2px 0 rgba(74, 59, 54, 0.18), 0 10px 22px rgba(90, 70, 120, 0.25);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #begin:active { transform: scale(0.98); }
+  #title .resume { min-height: 18px; margin: 8px 0 0; font-size: 13px; color: #7E6A63; }
+  #tin-link {
+    pointer-events: auto;
+    margin-top: 2px;
+    padding: 6px 10px;
+    border: 0;
+    background: none;
+    font: 600 13px/1 var(--font);
+    color: var(--lav-deep);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  /* the keepsake tin */
+  .tin-card canvas { width: 300px; height: 324px; max-width: 100%; margin-top: 10px; }
+  .tin-card .tin-note { font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { #title, #app header, #app footer { transition: none; } }
+  .haptic { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
+
+  @keyframes bump { 40% { transform: rotate(1.5deg) scale(1.1); } }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(0.98); } }
+  @keyframes drop { from { opacity: 0; transform: translate(-50%, -14px) rotate(-1.5deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    #over, .card, #toast, .score-wrap.bump { animation: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+
+<div id="app" class="away">
+  <header>
+    <div class="label-wrap best-wrap">
+      <div class="kraft best">Best<b id="best">0</b></div>
+      <svg class="twine" viewBox="0 0 30 70" aria-hidden="true"><path d="M10.5 70 C 4 58, 18 44, 12 24 S 6 0, 14 -24" fill="none" stroke="#E6D3AC" stroke-width="2.2" stroke-linecap="round"/><path d="M10.5 70 C 4 58, 18 44, 12 24 S 6 0, 14 -24" fill="none" stroke="#B89A6C" stroke-width="2.2" stroke-dasharray="1.2 2.4" stroke-linecap="round"/></svg>
+    </div>
+    <div class="label-wrap score-wrap" id="score-tag"><div class="linen score"><b id="score">0</b><span id="night-label">Night 1</span></div></div>
+    <div class="tools">
+      <button class="icon-btn" id="restart" aria-label="Start a new nest" title="Start a new nest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg>
+      </button>
+      <button class="icon-btn" id="sound" aria-label="Sound" aria-pressed="false" title="Sound">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="on" d="M15.5 9a4.5 4.5 0 0 1 0 6"/><path class="on" d="M18.5 6.5a8 8 0 0 1 0 11"/><path class="off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="stage" aria-label="Erwu's nest"></main>
+
+  <footer>
+    <div id="tray" aria-label="Your three nest pieces"></div>
+    <p id="hint" aria-live="polite">Drag pieces in. Fill a whole ring to weave it.</p>
+  </footer>
+</div>
+
+<div id="toast" hidden role="status"><svg class="bloom b1" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="17" cy="18" rx="6" ry="2.6" transform="rotate(-30 17 18)" fill="#86A571"/><g fill="#FFFDF7"><circle cx="12" cy="6.5" r="3.4"/><circle cx="17.2" cy="10.3" r="3.4"/><circle cx="15.2" cy="16.4" r="3.4"/><circle cx="8.8" cy="16.4" r="3.4"/><circle cx="6.8" cy="10.3" r="3.4"/></g><circle cx="12" cy="11.6" r="2.6" fill="#E6B458"/></svg><svg class="bloom b2" viewBox="0 0 24 24" aria-hidden="true"><g fill="#A993D8"><ellipse cx="12" cy="5" rx="2.2" ry="3.2"/><ellipse cx="9" cy="10" rx="2.2" ry="3.2"/><ellipse cx="15" cy="10" rx="2.2" ry="3.2"/><ellipse cx="12" cy="14.5" rx="2.2" ry="3.2"/></g><path d="M12 16v7" stroke="#7F9C6C" stroke-width="1.6"/></svg><span id="toast-kicker">A new layer</span><b id="toast-text">Knitted wall</b></div>
+
+<div id="over" hidden>
+  <div class="card" role="dialog" aria-labelledby="over-title">
+    <figure class="polaroid"><span class="tape" aria-hidden="true"></span><canvas id="card-nest" width="600" height="600" aria-hidden="true"></canvas><figcaption>Erwu's nest</figcaption></figure>
+    <h2 id="over-title">Goodnight, Erwu</h2>
+    <div class="big" id="over-score">0</div>
+    <p id="over-best">points</p>
+    <p id="over-level"></p>
+    <div class="gallery" id="gallery"></div>
+    <button id="again">Weave a new nest</button>
+  </div>
+</div>
+
+<div id="tin" class="sheet" hidden>
+  <div class="card tin-card" role="dialog" aria-labelledby="tin-title">
+    <h2 id="tin-title">Keepsake tin</h2>
+    <p id="tin-count">Treasures found in the nest</p>
+    <canvas id="tin-canvas" width="600" height="648" role="img" aria-label="Your keepsakes"></canvas>
+    <p class="tin-note">Find all four colours of a keepsake and it decorates every nest.</p>
+    <button id="tin-close">Back to the nest</button>
+  </div>
+</div>
+
+<section id="title" aria-labelledby="title-name">
+  <div>
+    <p class="once">Once upon a quiet evening</p>
+    <h1 id="title-name">Erwu's Nest</h1>
+  </div>
+  <div class="story">
+    <p>Erwu is already asleep.</p>
+    <p class="soft">Build her something comfortable for tonight.</p>
+    <button id="begin">Start building</button>
+    <p class="resume" id="resume"></p>
+    <button id="tin-link" hidden>Open the keepsake tin</button>
+  </div>
+</section>
+
+<label class="haptic" id="haptic" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Setup ----------
+  const $ = (s) => document.querySelector(s);
+  const canvas = $('#c'), ctx = canvas.getContext('2d');
+  const el = {
+    app: $('#app'), stage: $('#stage'), tray: $('#tray'), hint: $('#hint'),
+    score: $('#score'), scoreTag: $('#score-tag'), nightLabel: $('#night-label'), best: $('#best'),
+    sound: $('#sound'), restart: $('#restart'),
+    toast: $('#toast'), toastKicker: $('#toast-kicker'), toastText: $('#toast-text'),
+    over: $('#over'), overScore: $('#over-score'), overBest: $('#over-best'), overLevel: $('#over-level'),
+    gallery: $('#gallery'), again: $('#again'), cardNest: $('#card-nest'), haptic: $('#haptic'),
+    title: $('#title'), begin: $('#begin'), resume: $('#resume'), tinLink: $('#tin-link'),
+    tin: $('#tin'), tinCanvas: $('#tin-canvas'), tinCount: $('#tin-count'), tinClose: $('#tin-close'),
+  };
+  const TAU = Math.PI * 2;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('nest4.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('nest4.' + k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem('nest4.' + k); } catch {} },
+  };
+  const HAND = '"Gaegu", "Chalkboard SE", ui-rounded, cursive';
+
+  const P = {
+    ground: '#EFE2D6', ink: '#4A3B36', inkSoft: '#8C7A72', card: '#FBF4EC',
+    straw: '#E9D6BA', twig: '#9C7550', twigDark: '#7A5A3C', twigLight: '#B8916A', twine: '#EADCBC',
+    lav: '#B49CDA', lavDeep: '#8B73B3', honey: '#E6B458', heart: '#E7939F', rose: '#E6A0A0', sage: '#A7BD99',
+    fur: '#7C7A8B', furLight: '#9A97A8', ear: '#B9A2AE', eye: '#CFA53B', pupil: '#29242F', nose: '#4A4555',
+  };
+  // Nest materials, gathered from around the house and garden. Twigs are bundles that
+  // run outward from Erwu; everything else curves round her.
+  const MATS = [
+    { name: 'Twig', adj: 'Woven twig', plural: 'twigs', col: '#8E6A48' },
+    { name: 'Clover', adj: 'Leafy', plural: 'clover', col: '#7F9E6A' },
+    { name: 'Knit wool', adj: 'Knitted', plural: 'wool', col: '#A993D8' },
+    { name: 'Quilt', adj: 'Quilted', plural: 'quilt scraps', col: '#E9A0A9' },
+    { name: 'Cushion', adj: 'Puffy', plural: 'puffs', col: '#F0CC6C' },
+    { name: 'Gingham', adj: 'Gingham', plural: 'gingham', col: '#8FA8CC' },
+    { name: 'Lavender', adj: 'Lavender', plural: 'lavender', col: '#A8BB98' },
+  ];
+  const T_TWIG = 0, T_CLOVER = 1, T_KNIT = 2, T_QUILT = 3, T_PUFF = 4, T_GINGHAM = 5, T_LAV = 6;
+  const RINGS = 4, SLOTS = 12, STEP = TAU / SLOTS;
+  const SHAPES = {
+    arc1: [[0, 0]], arc2: [[0, 0], [0, 1]], arc3: [[0, 0], [0, 1], [0, 2]], arc4: [[0, 0], [0, 1], [0, 2], [0, 3]],
+    twig2: [[0, 0], [1, 0]], twig3: [[0, 0], [1, 0], [2, 0]],
+    patch: [[0, 0], [0, 1], [1, 0], [1, 1]],
+    hookA: [[0, 0], [0, 1], [1, 0]], hookB: [[0, 0], [0, 1], [1, 1]],
+    hookC: [[0, 0], [1, 0], [1, 1]], hookD: [[0, 1], [1, 0], [1, 1]],
+  };
+  // a woven ring made of a single material brings its own decoration
+  const COZY_DECOR = ['acorns', 'flowers', 'pompoms', 'heart', 'buttons', 'bow', 'stamp'];
+  const TIER_DECOR = ['pompoms', 'bunting', 'bells', 'stars', 'flowers', 'mushrooms', 'bow', 'heart', 'acorns', 'butterfly', 'feathers', 'buttons', 'stamp', 'charm'];
+  const LIGHTS = [['#FFE3A3', '#FFF4DA', '#F7C6CF'], ['#DCCBF3', '#FFE3A3', '#F7C6CF'], ['#D6E4FF', '#FFF4DA', '#DCCBF3'], ['#FFD2C2', '#FFF4DA', '#F7C6CF']];
+
+  // ---------- Colour helpers ----------
+  const hexRgb = (h) => { h = h.replace('#', ''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const INK = hexRgb(P.ink), WHITE = [255, 255, 255];
+  function shade(hex, amt, a = 1) {
+    const c = hexRgb(hex), to = amt > 0 ? WHITE : INK, t = Math.abs(amt);
+    return rgb(c.map((v, i) => Math.round(v + (to[i] - v) * t)), a);
+  }
+  // small deterministic noise so each piece keeps its own texture
+  const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+  const P2 = (a, r) => [Math.cos(a) * r, Math.sin(a) * r];
+  const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const easeOutBack = (p) => { const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+
+  // ---------- Geometry ----------
+  // Board coordinates are measured from Erwu, at the centre of the nest.
+  let W = 0, H = 0, DPR = 1, CX = 0, CY = 0, boardR = 140, coreR = 40, r0 = 46, rw = 24, rimBase = 10;
+  let trayY = 0, trayXs = [0, 0, 0], trayGap = 110, bg = null;
+  const ringIn = (r) => r0 + r * rw, ringOut = (r) => r0 + (r + 1) * rw, ringMid = (r) => r0 + (r + 0.5) * rw;
+  const slotAngle = (s) => s * STEP - Math.PI / 2;
+  // The landing page shows the nest bigger and higher; the game has room below it for the
+  // basket, the pincushion, the tin and tonight's goals. Everything is measured from these.
+  let gameL = { cx: 0, cy: 0, R: 140 }, titleL = { cx: 0, cy: 0, R: 140 }, nestBase = null;
+  let mode = 'title', intro = 0, gameFade = 0;
+  function setGeometry(cx, cy, R) {
+    CX = cx; CY = cy; boardR = R;
+    coreR = R * 0.33; r0 = coreR + R * 0.035; rw = (R - r0) / RINGS; rimBase = R * 0.07;
+  }
+  function applyMode() {
+    const k = mode === 'title' ? 0 : mode === 'intro' ? easeInOut(Math.min(1, intro)) : 1;
+    setGeometry(titleL.cx + (gameL.cx - titleL.cx) * k, titleL.cy + (gameL.cy - titleL.cy) * k, titleL.R + (gameL.R - titleL.R) * k);
+  }
+  function layout() {
+    W = window.innerWidth; H = window.innerHeight;
+    DPR = Math.min(3, window.devicePixelRatio || 1);
+    canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+    const sr = el.stage.getBoundingClientRect(), tr = el.tray.getBoundingClientRect();
+    const R = Math.max(100, Math.min((sr.width / 2 + 10) / 1.24, (sr.height - 96) / 2.26, 230));
+    // spare height goes mostly above the nest, keeping it clear of the banners at the top
+    gameL = { cx: sr.left + sr.width / 2, cy: sr.top + 1.07 * R + 6 + Math.max(0, sr.height - (2.26 * R + 96)) * 0.75, R };
+    const top = H * 0.06 + 105, bottom = H * 0.955 - 180;
+    const Rt = Math.max(100, Math.min(W * 0.4, (bottom - top) / 2.2, 210));
+    titleL = { cx: W / 2, cy: (top + bottom) / 2, R: Rt };
+    applyMode();
+    trayY = tr.top + tr.height / 2;
+    trayGap = Math.min(tr.width / 3, 150);
+    trayXs = [-1, 0, 1].map((k) => tr.left + tr.width / 2 + k * trayGap);
+    bg = null; nestBase = null; boardDirty = true; wallsDirty = true;
+  }
+
+  // ---------- Sound (off until turned on) ----------
+  let audio = null, bus = null, soundOn = store.get('sound', false);
+  const PENTA = [0, 2, 4, 7, 9];
+  const noteFreq = (i) => 261.63 * Math.pow(2, (Math.floor(i / 5) * 12 + PENTA[i % 5]) / 12);
+  function makeAudio() {
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    bus = audio.createGain(); bus.connect(audio.destination);
+    const d = audio.createDelay(); d.delayTime.value = 0.17;
+    const fb = audio.createGain(); fb.gain.value = 0.25;
+    const lp = audio.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2000;
+    const wet = audio.createGain(); wet.gain.value = 0.2;
+    bus.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(wet); wet.connect(audio.destination);
+  }
+  function voice(f, g0, dur, type, t) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(g0, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(bus); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function tone(freq, gain = 0.05, dur = 0.35, delay = 0) {
+    if (!audio || !soundOn) return;
+    const t = audio.currentTime + delay;
+    voice(freq, gain, dur * 1.3, 'sine', t);
+    voice(freq * 3.01, gain * 0.15, dur * 0.35, 'sine', t);
+  }
+  function rustle(gain = 0.08) {
+    if (!audio || !soundOn) return;
+    const t = audio.currentTime, len = Math.floor(audio.sampleRate * 0.12);
+    const buf = audio.createBuffer(1, len, audio.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+    const src = audio.createBufferSource(); src.buffer = buf;
+    const bp = audio.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 0.8;
+    const g = audio.createGain(); g.gain.value = gain;
+    src.connect(bp).connect(g).connect(audio.destination); src.start(t);
+  }
+  function purr(len = 1.4) {
+    if (!audio || !soundOn) return;
+    const t = audio.currentTime;
+    const o = audio.createOscillator(), lfo = audio.createOscillator(), lg = audio.createGain(), g = audio.createGain();
+    o.type = 'sawtooth'; o.frequency.value = 55; lfo.frequency.value = 24; lg.gain.value = 0.03;
+    lfo.connect(lg).connect(g.gain);
+    const lp = audio.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 240;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.04, t + 0.2); g.gain.linearRampToValueAtTime(0.0001, t + len);
+    o.connect(lp).connect(g).connect(audio.destination);
+    o.start(t); lfo.start(t); o.stop(t + len + 0.1); lfo.stop(t + len + 0.1);
+  }
+  function setSound(on) {
+    soundOn = on; store.set('sound', on);
+    el.sound.setAttribute('aria-pressed', String(on));
+    el.sound.querySelectorAll('.on').forEach((p) => (p.style.display = on ? '' : 'none'));
+    el.sound.querySelectorAll('.off').forEach((p) => (p.style.display = on ? 'none' : ''));
+    if (on && !audio) { try { makeAudio(); } catch {} }
+    if (on && audio && audio.state === 'suspended') audio.resume();
+  }
+  function haptic() {
+    if (navigator.vibrate) { try { navigator.vibrate(8); } catch {} return; }
+    try { el.haptic.click(); } catch {}
+  }
+
+  // ---------- State ----------
+  let grid = [], tray = [], score = 0, shownScore = 0, best = store.get('best', 0);
+  let night = 1, playRings = RINGS, tierWoven = 0, tierMats = new Array(MATS.length).fill(0);
+  let walls = [], decor = [], nests = [];
+  let streak = 0, energy = 0, state = 'play', ringsTotal = 0, rescue = true;
+  let particles = [], floats = [], flyers = [], recent = [], blooms = [];
+  let drag = null, nextPid = 1, boardDirty = true, wallsDirty = true, lastWoven = null;
+  let gather = -1, settleT = -1, sheen = null, flare = 0;
+  const freshCat = () => ({ happy: 0, bounce: 0, twitch: 0, nextTwitch: 3, earSide: 1, tailTip: 0, nextTail: 5, slow: 0, z: 2, idle: 0, dream: 0, dreamIcon: 0, anim: null, queue: [], perk: 0, worried: false });
+  let cat = freshCat();
+  const emptyGrid = () => Array.from({ length: RINGS }, () => new Array(SLOTS).fill(null));
+  const mod = (s) => ((s % SLOTS) + SLOTS) % SLOTS;
+
+  // ---------- Nights: each one its own little world ----------
+  // Every night has its own basket of materials, its own tablecloth, cushion and rim, and
+  // three soft goals for bonus points. After the fifth night they come round again, trickier.
+  const NIGHTS = [
+    { name: 'A garden evening', note: 'Twigs, clover and soft cushions', mats: [[T_CLOVER, 3], [T_PUFF, 2], [T_KNIT, 2], [T_QUILT, 1]],
+      cloth: '#EADFD2', cushion: '#B49CDA', rim: 'blossom', lights: 0, goals: [['treasure', 2], ['wish', 1], ['cozy', 1]] },
+    { name: 'The sewing basket', note: 'Quilt scraps and gingham', mats: [[T_QUILT, 3], [T_GINGHAM, 3], [T_PUFF, 1], [T_KNIT, 1]],
+      cloth: '#ECDDD7', cushion: '#E9A0A9', rim: 'berry', lights: 3, goals: [['layer', T_QUILT], ['treasure', 3], ['double', 1]] },
+    { name: 'Lavender fields', note: 'Lavender joins the basket', mats: [[T_LAV, 3], [T_CLOVER, 2], [T_GINGHAM, 1], [T_KNIT, 1]],
+      cloth: '#E8E0E2', cushion: '#A8BB98', rim: 'lavender', lights: 1, goals: [['layer', T_LAV], ['wish', 2], ['streak', 3]] },
+    { name: 'A woolly winter night', note: 'Chunky knits and puffs', mats: [[T_KNIT, 3], [T_PUFF, 3], [T_QUILT, 1], [T_LAV, 1]],
+      cloth: '#E5E1DF', cushion: '#8FA8CC', rim: 'frost', lights: 2, goals: [['layer', T_KNIT], ['cozy', 2], ['treasure', 3]] },
+    { name: 'Midsummer', note: 'A little of everything', mats: [[T_CLOVER, 1], [T_KNIT, 1], [T_QUILT, 1], [T_PUFF, 1], [T_GINGHAM, 1], [T_LAV, 1]],
+      cloth: '#EDE0CF', cushion: '#E2B24F', rim: 'blossom', lights: 3, goals: [['wish', 3], ['double', 1], ['match', 8]] },
+  ];
+  const theme = () => NIGHTS[(night - 1) % NIGHTS.length];
+  function pickWeighted(opts) {
+    let r = Math.random() * opts.reduce((a, o) => a + o[1], 0);
+    for (const [v, w] of opts) { r -= w; if (r <= 0) return v; }
+    return opts[0][0];
+  }
+  const softMats = () => theme().mats.map(([m]) => m);
+
+  // tonight's soft goals
+  const COUNTED = ['treasure', 'wish', 'cozy', 'match'];
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const GOAL_TEXT = {
+    treasure: (g) => `Find ${plural(g.need, 'treasure', 'treasures')}`,
+    wish: (g) => `Grant ${plural(g.need, 'wish', 'wishes')}`,
+    cozy: (g) => plural(g.need, 'cozy ring', 'cozy rings'),
+    match: (g) => plural(g.need, 'match', 'matches'),
+    double: () => 'A double weave',
+    streak: (g) => `A streak of ${g.p}`,
+    layer: (g) => `A ${MATS[g.p].adj.toLowerCase()} layer`,
+  };
+  let goals = [];
+  function makeGoals() {
+    const round = Math.floor((night - 1) / NIGHTS.length);
+    goals = theme().goals.map(([k, p]) => ({ k, p, need: COUNTED.includes(k) ? p + round : 1, have: 0, done: false, t: 0 }));
+  }
+  function goalEvent(k, v = 1) {
+    for (const g of goals) {
+      if (g.done || g.k !== k) continue;
+      if (k === 'layer') g.have = v === g.p ? 1 : 0;
+      else if (k === 'streak') g.have = v >= g.p ? 1 : 0;
+      else g.have = Math.min(g.need, g.have + v);
+      if (g.have >= g.need) {
+        g.done = true; g.t = 0;
+        const bonus = 150 * night;
+        score += bonus;
+        addFloat(0, bandTop() - 16, `${GOAL_TEXT[g.k](g)} ✓  +${bonus}`, P.lavDeep, 0.72);
+        [9, 12, 14].forEach((n, i) => tone(noteFreq(n), 0.035, 0.4, 0.25 + i * 0.07));
+        if (goals.every((q) => q.done)) setTimeout(() => { addFloat(0, bandTop() - 40, "All of tonight's goals!", '#C0707C', 0.85); hearts(6); }, 700);
+      }
+    }
+  }
+
+  // Erwu's wish: each layer she dreams of one material. Weave a ring with enough of it.
+  let wish = null, wishPiece = null;
+  function newWish(announce) {
+    const m = pickWeighted(theme().mats.filter(([mm]) => mm !== T_TWIG));
+    wish = { m, need: night >= 3 ? 5 : 4, done: false, t: 0 };
+    wishPiece = null;
+    if (announce) sayWish();
+  }
+  const sayWish = () => wish && !wish.done && setHint(`Erwu is dreaming of ${MATS[wish.m].plural}. Weave a ring with ${wish.need} of them.`);
+  function wishBest() {
+    let b = 0;
+    for (let r = 0; r < playRings; r++) b = Math.max(b, grid[r].filter((c) => c && c.m === wish.m).length);
+    return b;
+  }
+  function grantWish() {
+    wish.done = true; wish.t = 0;
+    const bonus = 100 * night;
+    score += bonus;
+    addFloat(0, -coreR - rw * 1.5, `Erwu's wish came true!  +${bonus}`, '#C0707C', 0.8);
+    cat.happy = 1.8; playAnims(['knead', 1.8]);
+    hearts(9); purr(1.8);
+    [4, 7, 11, 14].forEach((n, i) => tone(noteFreq(n), 0.04, 0.6, 0.3 + i * 0.09));
+    if (el.hint.textContent.startsWith('Erwu is dreaming')) setHint('');
+    goalEvent('wish');
+  }
+
+  // The keepsake tin: every treasure you place is kept. Four colours of each make a set,
+  // and a finished set decorates every nest from then on.
+  const KEEP = [
+    { name: 'Ribbons', one: 'ribbon', cols: ['#E9A0A9', '#A993D8', '#8FA8CC', '#E2B24F'], names: ['pink', 'lilac', 'blue', 'honey'], deco: 'bow' },
+    { name: 'Ladybirds', one: 'ladybird', cols: ['#E0736E', '#EE9E5A', '#E9C45A', '#E9A0A9'], names: ['red', 'orange', 'yellow', 'pink'], deco: 'ladybirds' },
+    { name: 'Felt hearts', one: 'felt heart', cols: ['#E9A0A9', '#F4EFE6', '#E2B24F', '#8FA8CC'], names: ['pink', 'cream', 'honey', 'blue'], deco: 'heart' },
+    { name: 'Patches', one: 'patch', cols: ['#8FA8CC', '#E9A0A9', '#A8BB98', '#A993D8'], names: ['blue', 'pink', 'sage', 'lilac'], deco: 'stamp' },
+    { name: 'Buttons', one: 'button', cols: ['#A993D8', '#E9A0A9', '#8FA8CC', '#B98E5E'], names: ['lilac', 'pink', 'blue', 'wooden'], deco: 'buttons' },
+    { name: 'Lace bows', one: 'lace bow', cols: ['#E9A0A9', '#A993D8', '#8FA8CC', '#E2B24F'], names: ['pink', 'lilac', 'blue', 'honey'], deco: 'bunting' },
+  ];
+  const KEEP_OF = [0, 1, 2, 3, 4, 5, 0]; // which keepsake each material carries
+  const variantOf = (seed) => Math.floor(hash(seed, 78) * 4) % 4;
+  const keepCol = (m, seed) => KEEP[KEEP_OF[m]].cols[variantOf(seed)];
+  let tin = store.get('tin', null);
+  if (!tin || !Array.isArray(tin.n) || tin.n.length !== 24) tin = { n: new Array(24).fill(0), fresh: 0 };
+  let tinBump = 0;
+  const setDone = (k) => tin.n.slice(k * 4, k * 4 + 4).every(Boolean);
+  function keepName(m, seed) {
+    const K = KEEP[KEEP_OF[m]], c = K.names[variantOf(seed)];
+    return `${/^[aeiou]/.test(c) ? 'an' : 'a'} ${c} ${K.one}`;
+  }
+  function collect(m, seed, x, y) {
+    const k = KEEP_OF[m], v = variantOf(seed), i = k * 4 + v, first = !tin.n[i];
+    tin.n[i]++; tin.fresh++;
+    store.set('tin', tin);
+    if (!reduced) particles.push({ type: 'keep', k, v, sx: x, sy: y, x, y, vx: 0, vy: 0, t: 0, life: 1, decay: 0 });
+    else tinBump = 1;
+    if (first && setDone(k)) {
+      setTimeout(() => { showToast('A whole set!', `${KEEP[k].name} for every nest`); addDecor(KEEP[k].deco); hearts(6); }, 900);
+    }
+    return first;
+  }
+  const setDecor = () => KEEP.forEach((K, k) => setDone(k) && addDecor(K.deco));
+
+  // The pin: one piece can be kept aside on the pincushion for later.
+  let pinned = null;
+  const held = (i) => (i === 3 ? pinned : tray[i]);
+  function pinPiece(i) {
+    const p = tray[i];
+    tray[i] = pinned; pinned = p;
+    p.pop = 0.4; if (tray[i]) tray[i].pop = 0.4;
+    rustle(0.06); tone(noteFreq(9), 0.03, 0.2); haptic();
+    afterMove(); updateHud();
+  }
+
+  // ---------- Pieces ----------
+  function makePiece(key, m, seed) {
+    const cells = SHAPES[key];
+    const h = Math.max(...cells.map((c) => c[0])) + 1;
+    const mdr = cells.reduce((a, c) => a + c[0], 0) / cells.length;
+    const mds = cells.reduce((a, c) => a + c[1], 0) / cells.length;
+    return { key, m, cells, h, mdr, mds, seed: seed ?? Math.floor(Math.random() * 9000) + 11, pop: 0 };
+  }
+  function playFill() {
+    let n = 0;
+    for (let r = 0; r < playRings; r++) for (let s = 0; s < SLOTS; s++) if (grid[r][s]) n++;
+    return n / Math.max(1, playRings * SLOTS);
+  }
+  // Each night brings bigger and more awkward pieces.
+  function randomPiece() {
+    const crowd = playFill();
+    const opts = [
+      ['arc1', crowd > 0.55 ? 0.3 : 0.14], ['arc2', 0.3], ['arc3', 0.24], ['arc4', night >= 2 ? 0.08 : 0],
+      ['twig2', playRings >= 2 ? 0.12 + (night >= 3 ? 0.04 : 0) : 0],
+      ['twig3', playRings >= 3 && night >= 2 ? 0.05 : 0],
+      ['patch', playRings >= 2 && night >= 2 ? 0.08 : 0],
+    ];
+    if (playRings >= 2 && night >= 3) for (const k of ['hookA', 'hookB', 'hookC', 'hookD']) opts.push([k, 0.025]);
+    let r = Math.random() * opts.reduce((a, o) => a + o[1], 0), key = 'arc2';
+    for (const [k, w] of opts) { r -= w; if (r <= 0) { key = k; break; } }
+    return makePiece(key, key.startsWith('twig') ? T_TWIG : pickWeighted(theme().mats));
+  }
+  function fits(p, r, s) {
+    for (const [dr, ds] of p.cells) {
+      const rr = r + dr;
+      if (rr < 0 || rr >= playRings || grid[rr][mod(s + ds)]) return false;
+    }
+    return true;
+  }
+  function canPlace(p) {
+    for (let r = 0; r < playRings; r++) for (let s = 0; s < SLOTS; s++) if (fits(p, r, s)) return true;
+    return false;
+  }
+  function dealTray() {
+    for (let tries = 0; tries < 40; tries++) {
+      tray = [randomPiece(), randomPiece(), randomPiece()];
+      if (tray.some(canPlace)) return;
+    }
+  }
+  function placementCenter(p, r, s) {
+    const a = slotAngle(s + p.mds), d = ringMid(r + p.mdr);
+    return { x: Math.cos(a) * d, y: Math.sin(a) * d, a, d };
+  }
+  // the nearest free spot for a piece held at board point (x, y), with generous snapping
+  function snap(p, x, y) {
+    const d = Math.hypot(x, y);
+    const u = mod((Math.atan2(y, x) + Math.PI / 2) / STEP);
+    const rB = Math.round((d - r0) / rw - 0.5 - p.mdr), sB = Math.round(u - p.mds);
+    let best = null;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let ds = -1; ds <= 1; ds++) {
+        const r = rB + dr, s = mod(sB + ds);
+        if (!fits(p, r, s)) continue;
+        const c = placementCenter(p, r, s), dist = Math.hypot(c.x - x, c.y - y);
+        if (!best || dist < best.dist) best = { r, s, dist };
+      }
+    }
+    return best && best.dist < rw * 1.9 ? best : null;
+  }
+  function wouldWeave(p, r, s) {
+    const cells = new Set(p.cells.map(([dr, ds]) => `${r + dr},${mod(s + ds)}`));
+    const out = [];
+    for (let rr = 0; rr < playRings; rr++) {
+      let ok = true;
+      for (let ss = 0; ss < SLOTS; ss++) if (!grid[rr][ss] && !cells.has(`${rr},${ss}`)) { ok = false; break; }
+      if (ok) out.push(rr);
+    }
+    return out;
+  }
+  const tierGoal = () => (playRings === 1 ? (night >= 3 ? 2 : 1) : 2 + (night >= 2 ? 1 : 0) + (night >= 4 && playRings >= 3 ? 1 : 0));
+  const energyPerRing = () => (night === 1 ? 0.5 : night === 2 ? 0.34 : 0.25);
+
+  // ---------- A move ----------
+  function place(i, r, s) {
+    const p = held(i), pid = nextPid++;
+    for (const [dr, ds] of p.cells) grid[r + dr][mod(s + ds)] = { m: p.m, pid, seed: p.seed };
+    // matching a neighbour of the same material earns a little extra
+    let match = 0;
+    for (const [dr, ds] of p.cells) {
+      const rr = r + dr, ss = mod(s + ds);
+      for (const [nr, ns] of [[rr - 1, ss], [rr + 1, ss], [rr, mod(ss - 1)], [rr, mod(ss + 1)]]) {
+        if (nr < 0 || nr >= playRings) continue;
+        const c = grid[nr][ns];
+        if (c && c.pid !== pid && c.m === p.m) match++;
+      }
+    }
+    if (i === 3) pinned = null; else tray[i] = null;
+    tierMats[p.m] += p.cells.length;
+    score += p.cells.length + match * 2;
+    const c = placementCenter(p, r, s);
+    recent.push({ pid, t: 0, x: c.x, y: c.y });
+    if (match) { addFloat(c.x, c.y - rw * 0.8, `+${match * 2} match`, P.lavDeep, 0.7); if (!reduced) for (let k = 0; k < 4; k++) sparkle(c.a, c.d); goalEvent('match', match); }
+    rustle(0.07); haptic();
+    tone(noteFreq(2 + p.cells.length), 0.025, 0.2);
+    cat.bounce = 0.5;
+    if (hasTreasure(p.seed)) { // it goes into the keepsake tin
+      const first = collect(p.m, p.seed, c.x, c.y);
+      addFloat(c.x, c.y + rw * 0.9, first ? `new keepsake: ${keepName(p.m, p.seed)}!` : `found ${keepName(p.m, p.seed)}!`, '#C0707C', 0.6);
+      if (!reduced) for (let k = 0; k < 5; k++) sparkle(c.a, c.d);
+      tone(noteFreq(12), 0.03, 0.3, 0.08);
+      goalEvent('treasure');
+    }
+    if (c.d < ringOut(1)) { cat.twitch = 1; cat.earSide = c.x < 0 ? -1 : 1; } // a piece landing close by gets an ear flick
+    boardDirty = true;
+    const woven = weave();
+    if (tierWoven >= tierGoal()) {
+      state = 'building'; gather = 0; // the ring glows while it gathers itself
+      setTimeout(tierComplete, woven ? 800 : 450);
+    } else afterMove();
+    updateHud();
+  }
+  function afterMove() {
+    if (tray.every((t) => !t)) dealTray();
+    saveRun();
+    checkStuck();
+  }
+  const playable = () => tray.filter((t) => t && canPlace(t)).length + (pinned && canPlace(pinned) ? 1 : 0);
+  function checkStuck() {
+    if (state !== 'play') return;
+    const ok = playable();
+    cat.worried = ok <= 1;
+    if (ok) return;
+    if (energy >= 1) { setHint('No room for these. Tap Erwu for new pieces.'); return; }
+    // once per layer, Erwu digs up fresh pieces before the night ends
+    if (rescue) {
+      rescue = false;
+      dealTray();
+      startAnim('knead', 1.2);
+      addFloat(0, coreR + rw * 1.1, 'Erwu found more pieces', P.lavDeep, 0.95);
+      rustle(0.1);
+      checkStuck();
+      return;
+    }
+    setTimeout(() => { if (state === 'play' && !playable() && energy < 1) goodnight(); }, 800);
+  }
+
+  function weave() {
+    const rings = [];
+    for (let r = 0; r < playRings; r++) if (grid[r].every(Boolean)) rings.push(r);
+    if (!rings.length) { streak = 0; return 0; }
+    streak++;
+    let pts = 0, cozyMat = -1, cozyN = 0, granted = false;
+    for (const r of rings) {
+      const mats = grid[r].map((c) => c.m);
+      const cozy = mats.every((m) => m === mats[0]);
+      pts += cozy ? 100 : 40;
+      if (cozy) { cozyMat = mats[0]; cozyN++; }
+      if (wish && !wish.done && mats.filter((m) => m === wish.m).length >= wish.need) granted = true;
+      lastWoven = grid[r].map((c) => [c.m, c.pid, c.seed]);
+      for (let s = 0; s < SLOTS; s++) {
+        flyers.push({ m: mats[s], a: slotAngle(s), from: ringMid(r), t: 0, delay: s * 0.02 });
+        if (!reduced) sparkle(slotAngle(s), ringMid(r));
+        grid[r][s] = null;
+      }
+    }
+    pts = Math.round(pts * rings.length * (1 + (streak - 1) * 0.5));
+    score += pts;
+    tierWoven += rings.length;
+    ringsTotal += rings.length;
+    energy = Math.min(1, energy + energyPerRing() * rings.length);
+    boardDirty = true;
+    const label = cozyMat >= 0 ? `Cozy ${MATS[cozyMat].name.toLowerCase()} ring!` : rings.length > 1 ? 'Double weave!' : 'Woven!';
+    addFloat(0, -coreR - rw * 0.5, '+' + pts, P.ink, 1.1 + Math.min(0.5, rings.length * 0.2));
+    addFloat(0, coreR + rw * 1.1, label + (streak > 1 ? `  streak ×${streak}` : ''), P.lavDeep, 1.0);
+    cat.happy = 0.9; cat.bounce = 1; cat.slow = 2.5; // and then a slow blink, which is how cats say thank you
+    hearts(rings.length + 2);
+    purr(); haptic();
+    [0, 2, 4, 7, 9].slice(0, 2 + rings.length).forEach((k, i) => tone(noteFreq(k + 5 + Math.min(streak, 5)), 0.045, 0.45, i * 0.07));
+    if (cozyMat >= 0) { addDecor(COZY_DECOR[cozyMat]); startAnim('knead', 2.2); }
+    else if (streak >= 2) startAnim('knead', 1.6);
+    if (streak >= 3) addDecor(Math.random() < 0.5 ? 'fireflies' : 'butterfly');
+    if (cozyN) goalEvent('cozy', cozyN);
+    if (rings.length > 1) goalEvent('double');
+    goalEvent('streak', streak);
+    if (granted) grantWish();
+    return rings.length;
+  }
+
+  // The outermost playable ring becomes a permanent layer of the nest. It keeps the real
+  // pieces: whatever sits in the ring now, filled out by the last ring you wove.
+  function tierComplete() {
+    const k = playRings - 1, soft = softMats();
+    const cells = [];
+    for (let s = 0; s < SLOTS; s++) {
+      const c = grid[k][s];
+      cells.push(c ? [c.m, c.pid, c.seed] : lastWoven ? lastWoven[s] : [soft[s % soft.length], -1 - s]);
+    }
+    const style = recipe(cells, k);
+    for (let s = 0; s < SLOTS; s++) {
+      if (grid[k][s]) { if (!reduced) sparkle(slotAngle(s), ringMid(k)); grid[k][s] = null; }
+    }
+    // a needle stitches it round the nest; it settles in with a burst when it gets back to the top
+    walls.push({ ring: k, style, cells, t: 0, bonus: 120 * night });
+    gather = -1;
+    playRings--;
+    boardDirty = true;
+    tone(noteFreq(5), 0.035, 0.3);
+    tierWoven = 0; tierMats = new Array(MATS.length).fill(0); rescue = true; lastWoven = null;
+    goalEvent('layer', style.main);
+    if (playRings === 0) return; // the night finishes once the lining has settled
+    newWish(true);
+    // pieces too tall for the smaller nest are swapped for ones that fit
+    tray = tray.map((t) => (t && t.h > playRings ? randomPiece() : t));
+    if (pinned && pinned.h > playRings) pinned = randomPiece();
+    state = 'play';
+    afterMove();
+    updateHud();
+  }
+  // A layer is named after what it's made of; a second material gets tucked into its seams.
+  function recipe(cells, k) {
+    const counts = new Array(MATS.length).fill(0);
+    for (const [m] of cells) counts[m] += 2;
+    tierMats.forEach((c, m) => (counts[m] += c * 0.5));
+    const total = counts.reduce((a, b) => a + b, 0) || 1;
+    const order = counts.map((c, m) => [c, m]).sort((a, b) => b[0] - a[0]);
+    const [c1, m1] = order[0], [c2, m2] = order[1];
+    const st = { tier: RINGS - 1 - k, lining: k === 0, seed: Math.floor(Math.random() * 900) + 7 };
+    const kind = st.lining ? 'lining' : 'wall';
+    st.main = c1 / total >= 0.4 ? m1 : -1;
+    if (c1 / total >= 0.4) {
+      st.accent = c2 / total >= 0.15 ? m2 : -1;
+      st.name = `${MATS[m1].adj} ${kind}` + (st.accent >= 0 ? ` with ${MATS[m2].plural}` : '');
+    } else {
+      st.accent = -1;
+      st.name = `Patchwork ${kind}`;
+    }
+    return st;
+  }
+  function layerSettled(w) {
+    score += w.bonus; w.bonus = 0;
+    settleT = 0; flare = 1;
+    if (!reduced) sheen = { ring: w.ring, t: 0 };
+    if (w.ring > 0) showToast('A new layer', w.style.name); // the lining's news comes with the finished night
+    addFloat(0, -coreR - rw * 0.5, '+' + 120 * night, P.ink, 1.4);
+    addDecor(walls.length === 1 && !decor.some((d) => d.kind === 'lights') ? 'lights' : pickTierDecor());
+    playAnims(['stretch', 1.3], ['yawn', 1.5]);
+    cat.happy = 1.2;
+    hearts(7);
+    burst(w);
+    tone(noteFreq(0) / 2, 0.08, 0.5); // a soft thump
+    [0, 4, 7, 12, 16].forEach((n, i) => tone(noteFreq(n + 7), 0.045, 0.7, 0.05 + i * 0.08));
+    purr(1.2);
+    haptic(); setTimeout(haptic, 110);
+    if (playRings === 0) setTimeout(nightComplete, 500);
+    else if (state === 'play') { saveRun(); updateHud(); }
+  }
+  // petals, felt hearts, buttons and leaves in the layer's own colours, and a ring of light
+  function burst(w) {
+    if (reduced) return;
+    const mats = [...new Set(w.cells.map((c) => c[0]))], shapes = ['petal', 'petal', 'heart', 'button', 'leaf', 'blossom'];
+    for (let i = 0; i < 64; i++) {
+      const a = Math.random() * TAU, d = ringMid(w.ring), sp = boardR * (0.45 + Math.random() * 0.95);
+      particles.push({
+        type: 'confetti', shape: shapes[i % shapes.length], col: MATS[mats[i % mats.length]].col,
+        x: Math.cos(a) * d, y: Math.sin(a) * d, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - boardR * 0.4,
+        rot: Math.random() * TAU, vr: (Math.random() - 0.5) * 9, r: 4.5 + Math.random() * 4, life: 1, decay: 0.36 + Math.random() * 0.18,
+      });
+    }
+    particles.push({ type: 'ring', x: 0, y: 0, vx: 0, vy: 0, r: ringOut(w.ring), vr: boardR * 1.1, col: '255, 224, 150', life: 1, decay: 1.3 });
+    particles.push({ type: 'ring', x: 0, y: 0, vx: 0, vy: 0, r: ringMid(w.ring), vr: boardR * 0.7, col: '180, 156, 218', life: 1, decay: 1.1 });
+  }
+  function nightComplete() {
+    state = 'celebrate';
+    const bonus = 400 * night;
+    score += bonus;
+    // quiet finishing touches: a few blooms, the lights glowing brighter, specks of light drifting up
+    addDecor('lights');
+    scatterBlooms(5);
+    specks(26);
+    playAnims(['stretch', 1.1], ['turn', 1.5], ['knead', 1.2]);
+    cat.happy = 3.4;
+    hearts(10);
+    purr(2.2);
+    showToast(`Night ${night} complete`, "Erwu's nest is finished");
+    addFloat(0, -coreR - rw * 0.4, '+' + bonus, P.ink, 1.5);
+    [0, 2, 4, 7, 9, 12, 14].forEach((n, i) => tone(noteFreq(n + 5), 0.045, 0.6, i * 0.08));
+    updateHud();
+    setTimeout(() => { captureNest(); newNight(); }, 3800);
+  }
+  function newNight() {
+    night++;
+    grid = emptyGrid(); playRings = RINGS; walls = []; decor = []; recent = []; blooms = []; lastWoven = null;
+    melt = 0; candleOn = 0;
+    tierWoven = 0; tierMats = new Array(MATS.length).fill(0);
+    boardDirty = wallsDirty = true;
+    bg = null; nestBase = null; // a new tablecloth, cushion and rim for tonight
+    makeGoals(); newWish(true); setDecor();
+    dealTray();
+    state = 'play';
+    showToast(`Night ${night} · ${theme().note.toLowerCase()}`, theme().name);
+    saveRun(); updateHud();
+  }
+
+  // Erwu fetches three new pieces once her helper ring is full.
+  function fetchPieces() {
+    if (state !== 'play') return;
+    if (energy < 1) {
+      cat.bounce = 0.5;
+      setHint('Weave more rings, then tap Erwu for new pieces.');
+      return;
+    }
+    energy = 0;
+    dealTray();
+    cat.happy = 1;
+    startAnim('knead', 1.2);
+    addFloat(0, coreR + rw * 1.1, 'Erwu fetched new pieces', P.lavDeep, 0.95);
+    rustle(0.1); haptic(); tone(noteFreq(9), 0.04, 0.3);
+    setHint('');
+    saveRun(); updateHud();
+    checkStuck();
+  }
+
+  function nestSpan() { return boardR + rimBase + boardR * 0.24; }
+  function captureNest() {
+    try {
+      const c = document.createElement('canvas'); c.width = c.height = 180;
+      const g = c.getContext('2d'), span = nestSpan();
+      g.fillStyle = P.ground; g.fillRect(0, 0, 180, 180);
+      g.drawImage(canvas, (CX - span) * DPR, (CY - span) * DPR, span * 2 * DPR, span * 2 * DPR, 0, 0, 180, 180);
+      nests.push(c.toDataURL('image/jpeg', 0.82));
+      if (nests.length > 6) nests.shift();
+    } catch {}
+  }
+  function goodnight() {
+    if (state !== 'play') return;
+    state = 'over';
+    store.del('run');
+    const isBest = score > best;
+    if (isBest) { best = score; store.set('best', best); }
+    [7, 4, 2, 0].forEach((n, i) => tone(noteFreq(n), 0.04, 0.6, i * 0.18));
+    updateHud();
+    setTimeout(() => {
+      const c = el.cardNest, g = c.getContext('2d'), span = nestSpan();
+      g.fillStyle = P.ground; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(canvas, (CX - span) * DPR, (CY - span) * DPR, span * 2 * DPR, span * 2 * DPR, 0, 0, c.width, c.height);
+      el.overScore.textContent = score;
+      el.overBest.textContent = isBest ? 'points, a new best' : `points, best is ${best}`;
+      el.overBest.classList.toggle('newbest', isBest);
+      const done = night - 1;
+      el.overLevel.textContent = done > 0
+        ? `${done} ${done === 1 ? 'nest' : 'nests'} finished, ${ringsTotal} rings woven`
+        : `${walls.length} ${walls.length === 1 ? 'layer' : 'layers'} built, ${ringsTotal} rings woven`;
+      el.gallery.replaceChildren(...nests.map((src, i) => { const im = new Image(); im.src = src; im.alt = `Nest from night ${i + 1}`; return im; }));
+      el.over.hidden = false;
+      el.again.focus({ preventScroll: true });
+    }, reduced ? 200 : 1100);
+  }
+  function newGame(starter) {
+    const nightWas = night;
+    grid = emptyGrid(); score = 0; shownScore = 0; streak = 0; energy = 0; night = 1; playRings = RINGS; rescue = true;
+    tierWoven = 0; tierMats = new Array(MATS.length).fill(0); ringsTotal = 0;
+    walls = []; decor = []; nests = []; particles = []; floats = []; flyers = []; recent = []; blooms = []; lastWoven = null;
+    drag = null; cat = freshCat(); state = 'play'; gather = settleT = -1; sheen = null;
+    boardDirty = wallsDirty = true;
+    if (nightWas !== 1) { bg = null; nestBase = null; }
+    pinned = null; melt = 0;
+    makeGoals(); newWish(mode === 'game'); setDecor();
+    // from the landing page, the things lying in the nest become the first three pieces
+    if (starter) tray = [makePiece('arc2', T_QUILT), makePiece('twig2', T_TWIG), makePiece('arc2', T_CLOVER)];
+    else dealTray();
+    el.over.hidden = true;
+    el.score.textContent = '0';
+    store.del('run');
+    updateHud();
+  }
+  function saveRun() {
+    if (state !== 'play') return;
+    store.set('run', {
+      v: 5, score: score + walls.reduce((a, w) => a + (w.bonus || 0), 0), streak, energy, night, playRings, tierWoven, tierMats, ringsTotal, nests, rescue,
+      grid: grid.map((row) => row.map((c) => (c ? [c.m, c.pid, c.seed] : 0))),
+      tray: tray.map((t) => (t ? [t.key, t.m, t.seed] : 0)), pin: pinned ? [pinned.key, pinned.m, pinned.seed] : 0,
+      wish: wish && [wish.m, wish.need, wish.done], goals: goals.map((g) => [g.k, g.p, g.need, g.have, g.done]),
+      walls: walls.map((w) => ({ ring: w.ring, style: w.style, cells: w.cells })), lastWoven,
+      decor: decor.map((d) => [d.kind, +d.a.toFixed(3), d.seed]),
+    });
+  }
+  function restoreRun(run) {
+    newGame();
+    ({ score, streak, energy, night, playRings, tierWoven, ringsTotal } = run);
+    shownScore = score;
+    tierMats = run.tierMats; nests = run.nests || []; rescue = run.rescue !== false;
+    let maxPid = 0;
+    grid = run.grid.map((row) => row.map((c) => { if (!c) return null; maxPid = Math.max(maxPid, c[1]); return { m: c[0], pid: c[1], seed: c[2] }; }));
+    nextPid = maxPid + 1;
+    tray = run.tray.map((t) => (t ? makePiece(t[0], t[1], t[2]) : null));
+    tray.forEach((t) => t && (t.pop = 1));
+    if (tray.every((t) => !t)) dealTray();
+    walls = run.walls.map((w) => ({ ...w, t: 1, bonus: 0 }));
+    wishPiece = null;
+    lastWoven = run.lastWoven || null;
+    decor = run.decor.map(([kind, a, seed]) => ({ kind, a, seed, born: 0 }));
+    pinned = run.pin ? makePiece(run.pin[0], run.pin[1], run.pin[2]) : null;
+    if (pinned) pinned.pop = 1;
+    if (run.wish) wish = { m: run.wish[0], need: run.wish[1], done: run.wish[2], t: 9 }; else newWish(false);
+    if (run.goals) goals = run.goals.map(([k, p, need, have, done]) => ({ k, p, need, have, done, t: 9 })); else makeGoals();
+    bg = null; nestBase = null;
+    el.score.textContent = score;
+    boardDirty = wallsDirty = true;
+    updateHud();
+  }
+
+  // ---------- HUD ----------
+  function updateHud() {
+    el.best.textContent = best;
+    el.nightLabel.textContent = `Night ${night}`;
+  }
+  function setHint(t) { el.hint.textContent = t; }
+  let toastTimer = 0;
+  function showToast(kicker, text) {
+    el.toastKicker.textContent = kicker; el.toastText.textContent = text;
+    el.toast.hidden = false;
+    el.toast.style.animation = 'none'; void el.toast.offsetWidth; el.toast.style.animation = '';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.toast.hidden = true), 3000);
+  }
+
+  // ---------- Effects ----------
+  function addFloat(x, y, text, col, scale = 1) { floats.push({ x, y, text, col, scale, life: 1 }); }
+  function hearts(n) {
+    if (reduced) return;
+    for (let i = 0; i < n; i++) {
+      particles.push({ type: 'heart', x: (Math.random() - 0.5) * coreR, y: -coreR * 0.5, vx: (Math.random() - 0.5) * boardR * 0.3, vy: -boardR * (0.35 + Math.random() * 0.3), r: coreR * (0.12 + Math.random() * 0.07), life: 1, decay: 0.75, wob: Math.random() * TAU });
+    }
+  }
+  function sparkle(a, d) {
+    for (let i = 0; i < 3; i++) {
+      const aa = a + (Math.random() - 0.5) * STEP, dd = d + (Math.random() - 0.5) * rw;
+      particles.push({ type: 'spark', x: Math.cos(aa) * dd, y: Math.sin(aa) * dd, vx: Math.cos(aa) * boardR * 0.2, vy: Math.sin(aa) * boardR * 0.2, r: 1.5 + Math.random() * 2, life: 1, decay: 1.6 });
+    }
+  }
+  function startAnim(type, dur) { playAnims([type, dur]); }
+  function playAnims(...list) {
+    if (reduced) return;
+    const [[type, dur], ...rest] = list;
+    cat.anim = { type, t: 0, dur };
+    cat.queue = rest.map(([type, dur]) => ({ type, t: 0, dur }));
+  }
+  // specks of warm light that drift up off the finished nest
+  function specks(n) {
+    if (reduced) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * TAU, d = coreR + Math.random() * (boardR - coreR);
+      particles.push({ type: 'speck', x: Math.cos(a) * d, y: Math.sin(a) * d, vx: (Math.random() - 0.5) * 8, vy: -(6 + Math.random() * 16), r: 1 + Math.random() * 1.3, life: 1, decay: 0.26 + Math.random() * 0.22 });
+    }
+  }
+  // a few flowers tucked into the finished nest, one after another
+  function scatterBlooms(n) {
+    for (let i = 0; i < n; i++) {
+      blooms.push({ a: Math.random() * TAU, r: r0 + rw * (0.5 + Math.random() * (RINGS - 1)), t: -0.3 - i * 0.28, kind: i % 3, rot: Math.random() * TAU });
+    }
+  }
+  function drawBloom(g, b) {
+    if (b.t <= 0) return;
+    const k = reduced ? 1 : easeOutBack(Math.min(1, b.t / 0.5)), [x, y] = P2(b.a, b.r), r = rw * 0.24 * k;
+    leaf(g, x, y, r * 2.3, b.rot, '#86A571'); leaf(g, x, y, r * 1.9, b.rot + 2.3, '#9CB48A');
+    if (b.kind === 1) {
+      g.fillStyle = '#F2B8BF';
+      for (let q = 0; q < 5; q++) { const c = (q * TAU) / 5 + b.rot; dot(g, x + Math.cos(c) * r * 0.62, y + Math.sin(c) * r * 0.62, r * 0.5); }
+      g.fillStyle = '#FFF4DA'; dot(g, x, y, r * 0.34);
+    } else if (b.kind === 2) {
+      g.fillStyle = '#B9A6E4';
+      for (let q = 0; q < 6; q++) { const c = (q * TAU) / 6 + b.rot; ell(g, x + Math.cos(c) * r * 0.55, y + Math.sin(c) * r * 0.55, r * 0.5, r * 0.28, c); }
+      g.fillStyle = P.honey; dot(g, x, y, r * 0.3);
+    } else blossom(g, x, y, r);
+  }
+
+  // ---------- Decorations ----------
+  function pickTierDecor() {
+    const free = TIER_DECOR.filter((k) => !decor.some((d) => d.kind === k));
+    return free.length ? free[Math.floor(Math.random() * free.length)] : TIER_DECOR[Math.floor(Math.random() * TIER_DECOR.length)];
+  }
+  function addDecor(kind) {
+    const global = ['lights', 'fireflies', 'butterfly'];
+    if (global.includes(kind) && decor.some((d) => d.kind === kind)) return;
+    if (decor.filter((d) => d.kind === kind).length >= 2 || decor.length >= 16) return;
+    // tucked in wherever there's a bit of room: not evenly spaced, and clear of the label below
+    const gap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    let bestA = Math.random() * TAU;
+    for (let tries = 0; tries < 40; tries++) {
+      const a = Math.random() * TAU;
+      if (gap(a, Math.PI / 2) > 0.45 && decor.every((d) => global.includes(d.kind) || gap(a, d.a) > 0.7)) { bestA = a; break; }
+    }
+    decor.push({ kind, a: bestA, seed: Math.floor(Math.random() * 1000), born: performance.now() });
+  }
+
+  // ---------- Drawing: materials ----------
+  function sectorPath(g, rin, rout, a0, a1) {
+    g.beginPath();
+    g.arc(0, 0, rout, a0, a1, false);
+    g.arc(0, 0, rin, a1, a0, true);
+    g.closePath();
+  }
+  const fillAll = (g, col) => { g.fillStyle = col; g.fillRect(-2000, -2000, 4000, 4000); };
+  const ell = (g, x, y, rx, ry, rot = 0) => { g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot, 0, TAU); g.fill(); };
+  const dot = (g, x, y, r) => { g.beginPath(); g.arc(x, y, Math.max(0.1, r), 0, TAU); g.fill(); };
+  const line = (g, a, b) => { g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); };
+  function heartPath(g, r) {
+    g.beginPath(); g.moveTo(0, r * 0.9);
+    g.bezierCurveTo(-r * 1.3, 0, -r * 0.6, -r * 1.0, 0, -r * 0.35);
+    g.bezierCurveTo(r * 0.6, -r * 1.0, r * 1.3, 0, 0, r * 0.9);
+    g.closePath();
+  }
+
+  // --- small botanical and sewing bits shared by pieces, walls and the room ---
+  function blossom(g, x, y, r) {
+    g.fillStyle = '#FFFDF7';
+    for (let k = 0; k < 5; k++) { const b = (k * TAU) / 5; dot(g, x + Math.cos(b) * r * 0.62, y + Math.sin(b) * r * 0.62, r * 0.5); }
+    g.fillStyle = P.honey; dot(g, x, y, r * 0.36);
+  }
+  function leaf(g, x, y, len, rot, col) {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.fillStyle = col;
+    g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(len * 0.5, -len * 0.34, len, 0); g.quadraticCurveTo(len * 0.5, len * 0.34, 0, 0); g.fill();
+    g.strokeStyle = 'rgba(255, 255, 255, 0.35)'; g.lineWidth = 0.6; line(g, [len * 0.1, 0], [len * 0.85, 0]);
+    g.restore();
+  }
+  function clover(g, x, y, r, rot, col) {
+    g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = col;
+    for (let k = 0; k < 3; k++) { g.save(); g.rotate((k * TAU) / 3); g.translate(0, -r * 0.55); heartPath(g, r * 0.62); g.fill(); g.restore(); }
+    g.restore();
+  }
+  function sewingButton(g, x, y, r, col) {
+    g.fillStyle = col; dot(g, x, y, r);
+    g.strokeStyle = shade(col, -0.25); g.lineWidth = 0.8; g.beginPath(); g.arc(x, y, r * 0.74, 0, TAU); g.stroke();
+    g.fillStyle = shade(col, -0.45);
+    for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) dot(g, x + dx * r * 0.24, y + dy * r * 0.24, r * 0.12);
+  }
+  function drawFeather(g, x, y, L, Wd, rot) {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.beginPath(); g.moveTo(-L / 2, 0);
+    g.bezierCurveTo(-L * 0.25, -Wd * 0.58, L * 0.3, -Wd * 0.5, L / 2, 0);
+    g.bezierCurveTo(L * 0.3, Wd * 0.42, -L * 0.2, Wd * 0.52, -L / 2, 0);
+    g.closePath();
+    g.fillStyle = '#FDFAF6'; g.fill();
+    g.save(); g.clip();
+    g.fillStyle = 'rgba(169, 147, 216, 0.38)'; g.fillRect(L * 0.2, -Wd, L, Wd * 2);
+    g.strokeStyle = 'rgba(140, 120, 135, 0.35)'; g.lineWidth = 0.7;
+    for (let i = 1; i < 10; i++) { const x0 = -L / 2 + (L * i) / 10; line(g, [x0, 0], [x0 + L * 0.12, -Wd * 0.55]); line(g, [x0, 0], [x0 + L * 0.12, Wd * 0.55]); }
+    g.restore();
+    g.strokeStyle = '#B8A28C'; g.lineWidth = 1.1; g.lineCap = 'round';
+    line(g, [-L * 0.64, 0.6], [L * 0.46, -0.3]);
+    g.restore();
+  }
+
+  // --- the materials, drawn as the real things ---
+  // twigs & bindings: walnut sticks tied with twine, sometimes with a sprig tucked in
+  function texTwig(g, RI, RO, A0, A1, seed, idx) {
+    fillAll(g, '#5E4430');
+    const rm = (RI + RO) / 2, w = A1 - A0, th = RO - RI, am = (A0 + A1) / 2;
+    const cols = ['#A57E57', '#8C6844', '#B8916A'];
+    g.lineCap = 'round';
+    for (let k = -1.5; k <= 1.5; k++) {
+      const a = am + k * w * 0.22 + (hash(seed, k + 2) - 0.5) * w * 0.06, lw = rm * w * (0.13 + hash(seed, k + 9) * 0.06), col = cols[(k + 1.5) % 3];
+      const tilt = (hash(seed, k + 7) - 0.5) * 0.05;
+      const pa = P2(a - tilt, RI - 3), pb = P2(a + tilt, RO + 3);
+      g.strokeStyle = col; g.lineWidth = lw; line(g, pa, pb);
+      const nx = -Math.sin(a) * lw * 0.22, ny = Math.cos(a) * lw * 0.22;
+      g.strokeStyle = shade(col, 0.3, 0.7); g.lineWidth = 0.8; line(g, [pa[0] - nx, pa[1] - ny], [pb[0] - nx, pb[1] - ny]);
+      g.strokeStyle = shade(col, -0.3, 0.7); line(g, [pa[0] + nx, pa[1] + ny], [pb[0] + nx, pb[1] + ny]);
+      if (hash(seed, k + 5) > 0.5) { g.fillStyle = shade(col, -0.35); ell(g, ...P2(a, RI + th * (0.2 + 0.6 * hash(seed, k + 11))), lw * 0.2, lw * 0.3, a); }
+    }
+    if (idx % 2 === 0) { // three turns of twine tying the bundle
+      g.lineCap = 'butt';
+      for (const o of [-2.4, 0, 2.4]) {
+        g.strokeStyle = P.twine; g.lineWidth = 2;
+        g.beginPath(); g.arc(0, 0, rm + o, A0 - 0.1, A1 + 0.1); g.stroke();
+        g.strokeStyle = 'rgba(150, 120, 80, 0.5)'; g.lineWidth = 0.5;
+        g.beginPath(); g.arc(0, 0, rm + o + 1, A0 - 0.1, A1 + 0.1); g.stroke();
+      }
+    } else if (hash(seed, idx + 3) > 0.4) { // a little sprig tucked in
+      const [x, y] = P2(am + w * 0.16, RI + th * 0.42);
+      leaf(g, x, y, th * 0.5, am + 0.5, '#7F9E6A');
+      leaf(g, x, y, th * 0.4, am - 2.2, '#94B07C');
+      blossom(g, x, y, th * 0.14);
+    }
+  }
+  // leaves & herbs: clover, with the odd white bloom
+  function texClover(g, RI, RO, A0, A1, seed) {
+    const col = MATS[T_CLOVER].col, th = RO - RI, rm = (RI + RO) / 2;
+    fillAll(g, shade(col, -0.4));
+    const n = Math.max(3, Math.floor(((A1 - A0) * rm * th) / 50));
+    const greens = [col, shade(col, 0.2), shade(col, -0.12), '#96B37E'];
+    for (let i = 0; i < n; i++) {
+      const [x, y] = P2(A0 + (A1 - A0) * hash(seed + i, 1.3), RI + th * (0.15 + 0.7 * hash(i, seed + 0.7)));
+      clover(g, x, y, th * (0.2 + hash(i, seed) * 0.1), hash(seed, i) * TAU, greens[i % 4]);
+    }
+    for (let i = 0; i < Math.max(1, Math.floor(n / 4)); i++) {
+      blossom(g, ...P2(A0 + (A1 - A0) * hash(seed + i, 5.1), RI + th * (0.2 + 0.6 * hash(i + 9, seed))), th * 0.12);
+    }
+  }
+  // knitted wool: chunky V stitches in columns
+  function texKnit(g, RI, RO, A0, A1) {
+    const col = MATS[T_KNIT].col, th = RO - RI, colW = th / 2;
+    fillAll(g, shade(col, -0.3));
+    for (let c = 0; c < 2; c++) {
+      const rr = RI + colW * (c + 0.5), step = (colW * 0.62) / rr;
+      for (let a = Math.floor(A0 / step) * step - step; a < A1 + step; a += step) {
+        for (const side of [-1, 1]) {
+          const [x, y] = P2(a, rr + side * colW * 0.22), rot = a + Math.PI / 2 + side * 0.62;
+          g.fillStyle = shade(col, -0.14); ell(g, x + 0.4, y + 0.7, colW * 0.32, colW * 0.17, rot);
+          g.fillStyle = col; ell(g, x, y, colW * 0.3, colW * 0.155, rot);
+          g.fillStyle = shade(col, 0.38, 0.8); ell(g, x - Math.cos(rot) * colW * 0.07, y - Math.sin(rot) * colW * 0.07, colW * 0.13, colW * 0.05, rot);
+        }
+      }
+    }
+  }
+  // quilt fabric: strawberry cotton printed with little daisies
+  function texQuilt(g, RI, RO, A0, A1, seed) {
+    const col = MATS[T_QUILT].col, th = RO - RI, rm = (RI + RO) / 2;
+    fillAll(g, col);
+    g.fillStyle = 'rgba(255, 246, 240, 0.55)';
+    for (let k = 0; k < 3; k++) {
+      const rr = RI + th * (0.18 + 0.32 * k), step = 6 / rr, off = (k % 2) * step / 2;
+      for (let a = Math.floor(A0 / step) * step + off; a < A1; a += step) dot(g, ...P2(a, rr), 0.8);
+    }
+    const step = (th * 1.3) / rm;
+    for (let a = Math.floor(A0 / step) * step + step * 0.5; a < A1 + step; a += step) {
+      const [x, y] = P2(a, rm + th * 0.14 * (hash(Math.round(a * 100), seed) - 0.5)), r = th * 0.2;
+      g.fillStyle = '#FFF8F2';
+      for (let k = 0; k < 5; k++) { const b = (k * TAU) / 5 + a; dot(g, x + Math.cos(b) * r * 0.62, y + Math.sin(b) * r * 0.62, r * 0.46); }
+      g.fillStyle = P.honey; dot(g, x, y, r * 0.3);
+      g.fillStyle = '#8FAE7C'; ell(g, ...P2(a + r * 1.3 / rm, rm + r * 0.4), r * 0.42, r * 0.18, a + Math.PI / 2 + 0.6);
+    }
+  }
+  // puffy cushions: butter-yellow puffs, tufted at every seam
+  function texPuff(g, RI, RO, A0, A1) {
+    const col = MATS[T_PUFF].col, th = RO - RI, rm = (RI + RO) / 2;
+    fillAll(g, shade(col, -0.24));
+    const step = (th * 1.05) / rm;
+    for (let a = Math.floor(A0 / step) * step - step; a < A1 + step; a += step) {
+      const a0 = a + 0.9 / rm, a1 = a + step - 0.9 / rm, [cx, cy] = P2((a0 + a1) / 2, rm - th * 0.08);
+      const gr = g.createRadialGradient(cx, cy, 1, cx, cy, th * 0.66);
+      gr.addColorStop(0, shade(col, 0.5)); gr.addColorStop(0.5, col); gr.addColorStop(1, shade(col, -0.1));
+      g.fillStyle = gr;
+      g.beginPath(); g.arc(0, 0, RO - 1, a0, a1); g.arc(0, 0, RI + 1, a1, a0, true); g.closePath();
+      g.lineJoin = 'round'; g.lineWidth = 2.5; g.strokeStyle = gr; g.stroke(); g.fill();
+      const [sx, sy] = P2(a, rm);
+      g.strokeStyle = shade(col, -0.4, 0.8); g.lineWidth = 0.9;
+      line(g, [sx - 1.6, sy - 1.6], [sx + 1.6, sy + 1.6]); line(g, [sx + 1.6, sy - 1.6], [sx - 1.6, sy + 1.6]);
+    }
+  }
+  // gingham: a soft denim-blue check
+  function texGingham(g, RI, RO, A0, A1) {
+    const col = MATS[T_GINGHAM].col, th = RO - RI, rm = (RI + RO) / 2, cs = th / 4;
+    fillAll(g, '#F6F3EE');
+    g.fillStyle = rgb(hexRgb(col), 0.5);
+    for (let k = 0; k < 4; k += 2) { sectorPath(g, RI + k * cs, RI + (k + 1) * cs, A0 - 0.1, A1 + 0.1); g.fill(); }
+    const st = cs / rm;
+    for (let a = Math.floor(A0 / (2 * st)) * 2 * st; a < A1 + st; a += 2 * st) { sectorPath(g, RI - 1, RO + 1, a, a + st); g.fill(); }
+    g.strokeStyle = 'rgba(255, 255, 255, 0.2)'; g.lineWidth = 0.5;
+    for (let r = RI; r < RO; r += 1.6) { g.beginPath(); g.arc(0, 0, r, A0, A1); g.stroke(); }
+  }
+  // lavender: stems of purple buds on faded sage linen
+  function texLavender(g, RI, RO, A0, A1, seed) {
+    const col = MATS[T_LAV].col, th = RO - RI;
+    fillAll(g, shade(col, 0.28));
+    g.strokeStyle = 'rgba(255, 255, 255, 0.18)'; g.lineWidth = 0.5;
+    for (let r = RI; r < RO; r += 1.8) { g.beginPath(); g.arc(0, 0, r, A0, A1); g.stroke(); }
+    const buds = ['#9E88CF', '#B9A6E4', '#8A74BD'];
+    for (let k = 0; k < 2; k++) {
+      const rr = RI + th * (0.32 + 0.38 * k), step = 4.6 / rr;
+      g.strokeStyle = '#7F9C6C'; g.lineWidth = 1.1;
+      g.beginPath(); g.arc(0, 0, rr, A0 - 0.1, A1 + 0.1); g.stroke();
+      let i = 0;
+      for (let a = Math.floor(A0 / step) * step - step; a < A1 + step; a += step, i++) {
+        const rot = a + Math.PI / 2;
+        g.fillStyle = buds[(i + k) % 3];
+        ell(g, ...P2(a, rr - th * 0.08), 2.3, 1.4, rot + 0.5);
+        ell(g, ...P2(a + step * 0.5, rr + th * 0.08), 2.3, 1.4, rot - 0.5);
+      }
+    }
+    g.fillStyle = '#8FAA7C';
+    for (let i = 0; i < 2; i++) ell(g, ...P2(A0 + (A1 - A0) * hash(seed, i), RI + th * 0.5), 3.4, 1.3, A0 + Math.PI / 2 + 0.6);
+  }
+  const TEX = [texTwig, texClover, texKnit, texQuilt, texPuff, texGingham, texLavender];
+
+  // ---------- Drawing pieces as real, slightly unruly things ----------
+  // Cells are grouped back into runs: one continuous stretch of a piece along a ring, or a twig
+  // bundle running outward. Every piece has its own personality (a small tilt, a nudge in or out,
+  // a little overshoot at the ends) so pieces overlap and the nest stops looking like a clean ring.
+  // The grid underneath is unchanged; this is only how it's drawn.
+  function toRuns(list) {
+    const groups = new Map();
+    for (const c of list) {
+      const who = c.pid != null ? 'g' + c.pid : 'p' + c.seed;
+      const key = who + (c.m === T_TWIG ? '|' + c.a0.toFixed(3) : '|' + c.rin.toFixed(2));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(c);
+    }
+    const runs = [];
+    for (const cells of groups.values()) {
+      const base = (c) => ({ m: c.m, seed: c.seed, pid: c.pid ?? 0, rin: c.rin, rout: c.rout, a0: c.a0, a1: c.a1, idx: c.idx, who: c.pid != null ? 'g' + c.pid : 'p' + c.seed });
+      if (cells[0].m === T_TWIG) {
+        cells.sort((a, b) => a.rin - b.rin);
+        let cur = null;
+        for (const c of cells) { if (cur && Math.abs(cur.rout - c.rin) < 0.5) cur.rout = c.rout; else { cur = { ...base(c), radial: true }; runs.push(cur); } }
+      } else {
+        cells.sort((a, b) => a.a0 - b.a0);
+        const rs = [];
+        let cur = null;
+        for (const c of cells) { if (cur && Math.abs(cur.a1 - c.a0) < 1e-3) cur.a1 = c.a1; else { cur = base(c); rs.push(cur); } }
+        if (rs.length > 1) { // a run that wraps past twelve o'clock
+          const f = rs[0], l = rs[rs.length - 1];
+          if (Math.abs(l.a1 - TAU - f.a0) < 1e-3) { l.a1 = f.a1 + TAU; rs.shift(); }
+        }
+        runs.push(...rs);
+      }
+    }
+    // placement order is layering order; each piece's first run may carry a found treasure
+    runs.sort((a, b) => a.pid - b.pid || a.rin - b.rin || a.a0 - b.a0);
+    const seen = new Set();
+    for (const r of runs) { r.first = !seen.has(r.who); seen.add(r.who); }
+    return runs;
+  }
+  const hasTreasure = (seed) => hash(seed, 77) < 0.14;
+  function personality(run) {
+    const s = run.seed, rm = (run.rin + run.rout) / 2;
+    const tilt = (hash(s, 1) - 0.5) * 0.045, nudge = (hash(s, 2) - 0.5) * 2.6, over = 2 + hash(s, 3) * 3.2;
+    if (run.radial) return { rin: run.rin - over * 0.7, rout: run.rout + over * 0.7, a0: run.a0 + tilt, a1: run.a1 + tilt };
+    return { rin: run.rin + nudge, rout: run.rout + nudge, a0: run.a0 - over / rm + tilt, a1: run.a1 + over / rm + tilt };
+  }
+  function withShadow(g, blur, dy, fn) {
+    g.save(); g.shadowColor = 'rgba(70, 48, 36, 0.3)'; g.shadowBlur = blur; g.shadowOffsetY = dy; fn(); g.restore();
+  }
+  function tubeShade(g, rin, rout) {
+    const gr = g.createRadialGradient(0, 0, rin, 0, 0, rout);
+    gr.addColorStop(0, 'rgba(60, 40, 30, 0.3)'); gr.addColorStop(0.3, 'rgba(255, 250, 240, 0.18)');
+    gr.addColorStop(0.55, 'rgba(255, 250, 240, 0.05)'); gr.addColorStop(1, 'rgba(60, 40, 30, 0.32)');
+    g.fillStyle = gr; g.fillRect(-rout - 4, -rout - 4, rout * 2 + 8, rout * 2 + 8);
+  }
+  function ribbonBow(g, x, y, s, rot, col) {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.fillStyle = col;
+    for (const k of [-1, 1]) { g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(k * s * 1.6, -s * 1.2, k * s * 1.5, 0); g.quadraticCurveTo(k * s * 1.6, s * 1.1, 0, 0); g.fill(); }
+    g.beginPath(); g.moveTo(-s * 0.2, s * 0.2); g.lineTo(-s * 0.8, s * 1.9); g.lineTo(-s * 0.3, s * 1.7); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(s * 0.2, s * 0.2); g.lineTo(s * 0.9, s * 1.8); g.lineTo(s * 0.4, s * 1.75); g.closePath(); g.fill();
+    g.fillStyle = shade(col, -0.2); dot(g, 0, 0, s * 0.45);
+    g.restore();
+  }
+  function lace(g, r, a0, a1, outward) {
+    const step = 6.4 / r, o = outward ? 1 : -1;
+    g.strokeStyle = '#FFFBF4'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, r, a0, a1); g.stroke();
+    for (let a = a0; a < a1; a += step) {
+      g.fillStyle = '#FFFBF4'; dot(g, ...P2(a, r + o * 2), 3.6);
+      g.fillStyle = 'rgba(150, 120, 90, 0.4)'; dot(g, ...P2(a, r + o * 2.4), 1);
+      g.fillStyle = 'rgba(150, 120, 90, 0.25)'; dot(g, ...P2(a + step / 2, r + o * 0.2), 0.7);
+    }
+  }
+  function patch(g, x, y, s, rot, col) {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.fillStyle = 'rgba(70, 48, 36, 0.2)'; g.fillRect(-s + 0.6, -s + 1, s * 2, s * 2);
+    g.fillStyle = '#F6F3EE'; g.fillRect(-s, -s, s * 2, s * 2);
+    g.fillStyle = rgb(hexRgb(col), 0.5);
+    for (let i = -s; i < s; i += s / 2) { g.fillRect(i, -s, s / 4, s * 2); g.fillRect(-s, i, s * 2, s / 4); }
+    g.setLineDash([1.6, 1.4]); g.strokeStyle = '#8B73B3'; g.lineWidth = 0.9; g.strokeRect(-s + 1.4, -s + 1.4, s * 2 - 2.8, s * 2 - 2.8); g.setLineDash([]);
+    g.restore();
+  }
+  // a band whose sides waver a little, with optional pinked (zigzag) ends
+  function stripPath(g, q, seed, pinked) {
+    const { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin;
+    const n = Math.max(4, Math.ceil(((a1 - a0) * rout) / 4)), teeth = Math.max(3, Math.round(th / 4));
+    g.beginPath();
+    for (let i = 0; i <= n; i++) { const a = a0 + ((a1 - a0) * i) / n; const [x, y] = P2(a, rout + Math.sin(i * 1.3 + seed) * 0.6); if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+    for (let j = 1; j <= teeth; j++) { const r = rout - (th * j) / teeth; g.lineTo(...P2(a1 + (pinked && j % 2 ? 2.4 / rm : 0), r)); }
+    for (let i = n; i >= 0; i--) { const a = a0 + ((a1 - a0) * i) / n; g.lineTo(...P2(a, rin + Math.sin(i * 1.7 + seed) * 0.6)); }
+    for (let j = 1; j < teeth; j++) { const r = rin + (th * j) / teeth; g.lineTo(...P2(a0 - (pinked && j % 2 ? 2.4 / rm : 0), r)); }
+    g.closePath();
+  }
+  // a soft rounded tube (knit), with bumps along both edges from the stitch rows
+  function tubePath(g, q, amp) {
+    const { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin, cap = th / 2;
+    const b0 = a0 + cap / rm, b1 = a1 - cap / rm;
+    if (b1 <= b0) { const am = (a0 + a1) / 2; g.beginPath(); g.ellipse(...P2(am, rm), Math.max(th / 2, ((a1 - a0) * rm) / 2), th / 2, am + Math.PI / 2, 0, TAU); return; }
+    const n = Math.max(4, Math.ceil(((b1 - b0) * rout) / 2.5)), bump = (a) => amp * Math.abs(Math.sin((a * rm) / 3.1));
+    g.beginPath();
+    for (let i = 0; i <= n; i++) { const a = b0 + ((b1 - b0) * i) / n; const [x, y] = P2(a, rout + bump(a)); if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.arc(...P2(b1, rm), cap, b1, b1 + Math.PI, false);
+    for (let i = n; i >= 0; i--) { const a = b0 + ((b1 - b0) * i) / n; g.lineTo(...P2(a, rin - bump(a))); }
+    g.arc(...P2(b0, rm), cap, b0 + Math.PI, b0 + TAU, false);
+    g.closePath();
+  }
+  function pillowPath(g, ri, ro, b0, b1) {
+    const rm = (ri + ro) / 2, bm = (b0 + b1) / 2, [cx, cy] = P2(bm, rm);
+    const corner = (a, r) => { const [x, y] = P2(a, r); return [x + (cx - x) * 0.16, y + (cy - y) * 0.16]; };
+    const c1 = corner(b0, ro), c2 = corner(b1, ro), c3 = corner(b1, ri), c4 = corner(b0, ri);
+    g.beginPath(); g.moveTo(...c1);
+    g.quadraticCurveTo(...P2(bm, ro + 2.6), ...c2);
+    g.quadraticCurveTo(...P2(b1 + 2.4 / rm, rm), ...c3);
+    g.quadraticCurveTo(...P2(bm, ri - 2.6), ...c4);
+    g.quadraticCurveTo(...P2(b0 - 2.4 / rm, rm), ...c1);
+    g.closePath();
+  }
+
+  // twigs: rigid, straight sticks lashed with twine, cut ends poking out
+  function runTwig(g, q, run) {
+    const { rin, rout, a0, a1 } = q, am = (a0 + a1) / 2, rm = (rin + rout) / 2, w = (a1 - a0) * rm, s = run.seed;
+    const px = -Math.sin(am), py = Math.cos(am), n = w > 26 ? 5 : 4;
+    const cols = ['#A57E57', '#8C6844', '#B8916A', '#9A7350'];
+    const sticks = [];
+    for (let k = 0; k < n; k++) {
+      const o = (k - (n - 1) / 2) * (w / n) * 1.02 + (hash(s, k) - 0.5) * 1.2, lw = (w / n) * (0.86 + hash(s, k + 4) * 0.24);
+      const ext0 = 2 + hash(s, k + 8) * 4, ext1 = 2 + hash(s, k + 12) * 4, skew = (hash(s, k + 16) - 0.5) * 3;
+      const [x0, y0] = P2(am, rin - ext0), [x1, y1] = P2(am, rout + ext1);
+      sticks.push({ a: [x0 + px * o, y0 + py * o], b: [x1 + px * (o + skew), y1 + py * (o + skew)], lw, col: cols[k % 4] });
+    }
+    g.lineCap = 'butt';
+    withShadow(g, 4, 2, () => { for (const st of sticks) { g.strokeStyle = st.col; g.lineWidth = st.lw; line(g, st.a, st.b); } });
+    for (const st of sticks) {
+      g.strokeStyle = st.col; g.lineWidth = st.lw; line(g, st.a, st.b);
+      const dx = st.b[0] - st.a[0], dy = st.b[1] - st.a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+      g.lineWidth = 0.8;
+      g.strokeStyle = shade(st.col, 0.32, 0.75); line(g, [st.a[0] + nx * st.lw * 0.25, st.a[1] + ny * st.lw * 0.25], [st.b[0] + nx * st.lw * 0.25, st.b[1] + ny * st.lw * 0.25]);
+      g.strokeStyle = shade(st.col, -0.35, 0.75); line(g, [st.a[0] - nx * st.lw * 0.28, st.a[1] - ny * st.lw * 0.28], [st.b[0] - nx * st.lw * 0.28, st.b[1] - ny * st.lw * 0.28]);
+      g.fillStyle = '#E6CFA8'; // pale cut ends
+      for (const e of [st.a, st.b]) ell(g, e[0], e[1], st.lw * 0.5, st.lw * 0.3, Math.atan2(dy, dx) + Math.PI / 2);
+    }
+    // lashings of twine, or a ribbon bow for a found treasure
+    for (const [t, i] of [[0.3, 0], [0.72, 1]]) {
+      const [x, y] = P2(am, rin + (rout - rin) * t);
+      if (i === 1 && run.first && hasTreasure(s)) continue; // a ribbon goes here instead
+      g.strokeStyle = P.twine; g.lineWidth = 3.2; g.lineCap = 'round';
+      line(g, [x - px * (w / 2 + 2), y - py * (w / 2 + 2)], [x + px * (w / 2 + 2), y + py * (w / 2 + 2)]);
+      g.strokeStyle = 'rgba(150, 120, 80, 0.6)'; g.lineWidth = 0.6;
+      for (let k = -2; k <= 2; k++) line(g, [x + px * k * w * 0.2 - 1.2, y + py * k * w * 0.2 - 1.2], [x + px * k * w * 0.2 + 1.2, y + py * k * w * 0.2 + 1.2]);
+    }
+  }
+  // chunky knit: a soft, fat tube with bumpy edges
+  function runKnit(g, q, run) {
+    const col = MATS[T_KNIT].col;
+    withShadow(g, 6, 2.5, () => { tubePath(g, q, 1.1); g.fillStyle = col; g.fill(); });
+    g.save(); tubePath(g, q, 1.1); g.clip();
+    texKnit(g, q.rin, q.rout, q.a0 - 0.3, q.a1 + 0.3);
+    tubeShade(g, q.rin, q.rout);
+    g.restore();
+  }
+  // cushions: padded puffs that press into each other, piped and tufted
+  function runPuff(g, q, run) {
+    const col = MATS[T_PUFF].col, { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin;
+    const n = Math.max(1, Math.round(((a1 - a0) * rm) / (th * 1.05))), seg = (a1 - a0) / n;
+    for (let i = 0; i < n; i++) {
+      const b0 = a0 + i * seg - 0.7 / rm, b1 = a0 + (i + 1) * seg + 0.7 / rm, bm = (b0 + b1) / 2, [cx, cy] = P2(bm, rm - th * 0.06);
+      withShadow(g, 5, 2, () => { pillowPath(g, rin + 0.4, rout - 0.4, b0, b1); g.fillStyle = col; g.fill(); });
+      const gr = g.createRadialGradient(cx, cy, 1, cx, cy, th * 0.7);
+      gr.addColorStop(0, shade(col, 0.5)); gr.addColorStop(0.5, col); gr.addColorStop(1, shade(col, -0.16));
+      pillowPath(g, rin + 0.4, rout - 0.4, b0, b1); g.fillStyle = gr; g.fill();
+      g.strokeStyle = shade(col, -0.32, 0.7); g.lineWidth = 1.1; g.stroke();
+      const [tx, ty] = P2(bm, rm);
+      if (i === 0 && run.first && hasTreasure(run.seed)) continue; // a button goes here instead
+      g.strokeStyle = shade(col, -0.4, 0.55); g.lineWidth = 0.8;
+      for (let k = 0; k < 4; k++) { const b = (k * TAU) / 4 + 0.6; line(g, [tx + Math.cos(b) * 1.2, ty + Math.sin(b) * 1.2], [tx + Math.cos(b) * 3.6, ty + Math.sin(b) * 3.6]); }
+      g.fillStyle = shade(col, -0.45); dot(g, tx, ty, 1.2);
+    }
+  }
+  // quilt fabric and gingham: cut strips with pinked or frayed ends, a folded corner, hand stitching
+  function runFabric(g, q, run) {
+    const m = run.m, col = MATS[m].col, { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin, s = run.seed;
+    const pinked = m === T_QUILT;
+    // sometimes one corner is folded back, showing the paler underside
+    let fold = null;
+    if (hash(s, 31) > 0.45) {
+      const end = hash(s, 32) > 0.5 ? a1 : a0, dir = end === a1 ? -1 : 1, f = Math.min(8, th * 0.4);
+      fold = { pA: P2(end, rout), pB: P2(end + (dir * f) / rout, rout), pC: P2(end, rout - f), pD: P2(end + (dir * f * 0.7) / rout, rout - f * 0.7) };
+    }
+    const shape = () => { stripPath(g, q, s, pinked); if (fold) { g.moveTo(...fold.pA); g.lineTo(...fold.pB); g.lineTo(...fold.pC); g.closePath(); } };
+    withShadow(g, 5, 2, () => { shape(); g.fillStyle = col; g.fill('evenodd'); });
+    g.save(); shape(); g.clip('evenodd');
+    (m === T_QUILT ? texQuilt : texGingham)(g, rin, rout, a0 - 0.2, a1 + 0.2, s, run.idx);
+    tubeShade(g, rin, rout);
+    g.restore();
+    g.setLineDash([2.4, 2.2]); g.lineWidth = 1; g.strokeStyle = 'rgba(255, 247, 240, 0.9)';
+    for (const r of [rin + 3, rout - 3]) { g.beginPath(); g.arc(0, 0, r, a0 + 4 / rm, a1 - 4 / rm); g.stroke(); }
+    g.setLineDash([]);
+    if (m === T_GINGHAM) { // frayed threads at both ends
+      g.strokeStyle = 'rgba(120, 140, 175, 0.65)'; g.lineWidth = 0.6;
+      for (const [ea, dir] of [[a0, -1], [a1, 1]]) for (let r = rin + 1.5; r < rout - 1; r += 2) {
+        const [x, y] = P2(ea, r), l = 1.5 + hash(s, r) * 2.5;
+        line(g, [x, y], [x - Math.sin(ea) * dir * l, y + Math.cos(ea) * dir * l]);
+      }
+    }
+    if (fold) {
+      const { pB, pC, pD } = fold;
+      g.fillStyle = 'rgba(70, 48, 36, 0.18)'; g.beginPath(); g.moveTo(...pB); g.lineTo(...pC); g.lineTo(pD[0] + 1, pD[1] + 1.5); g.closePath(); g.fill();
+      g.fillStyle = shade(m === T_QUILT ? col : '#F6F3EE', 0.35); g.beginPath(); g.moveTo(...pB); g.lineTo(...pC); g.lineTo(...pD); g.closePath(); g.fill();
+      g.strokeStyle = shade(col, -0.2, 0.6); g.lineWidth = 0.7; line(g, pB, pC);
+    }
+  }
+  // clover: real stems, leaves and blooms on a soft green bed, spilling over the edges
+  function runClover(g, q, run) {
+    const col = MATS[T_CLOVER].col, { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin, s = run.seed;
+    withShadow(g, 5, 1.5, () => { stripPath(g, { rin: rin + 1, rout: rout - 1, a0: a0 + 1 / rm, a1: a1 - 1 / rm }, s, false); g.fillStyle = 'rgba(80, 104, 62, 0.5)'; g.fill(); });
+    const L = (a1 - a0) * rm, wav = (a) => rm + Math.sin((a * rm) / 9 + s) * th * 0.08;
+    g.strokeStyle = '#6E8F58'; g.lineWidth = 1.6; g.lineCap = 'round';
+    g.beginPath(); for (let i = 0; i <= 24; i++) { const a = a0 + ((a1 - a0) * i) / 24; const [x, y] = P2(a, wav(a)); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+    const greens = [col, shade(col, 0.2), shade(col, -0.1), '#96B37E'], n = Math.max(3, Math.round(L / 8));
+    for (let k = 0; k < n; k++) {
+      const a = a0 + ((a1 - a0) * (k + 0.5)) / n, side = k % 2 ? 1 : -1, rr = rm + side * th * (0.24 + hash(s, k) * 0.2);
+      const [sx, sy] = P2(a, wav(a)), [x, y] = P2(a + (hash(k, s) - 0.5) * 3 / rm, rr);
+      g.strokeStyle = '#6E8F58'; g.lineWidth = 0.9; line(g, [sx, sy], [x, y]);
+      g.save(); g.translate(0, 1.2); clover(g, x, y, th * 0.23, hash(s, k + 3) * TAU, 'rgba(40, 50, 30, 0.25)'); g.restore();
+      clover(g, x, y, th * (0.2 + hash(s, k + 5) * 0.07), hash(s, k + 3) * TAU, greens[k % 4]);
+      if (k % 3 === 1) blossom(g, ...P2(a + 2 / rm, rm - side * th * 0.18), th * 0.13);
+    }
+  }
+  // lavender: a little bundle of stems, buds at one end, tied round the middle
+  function runLavender(g, q, run) {
+    const col = MATS[T_LAV].col, { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin, s = run.seed;
+    withShadow(g, 5, 1.5, () => { stripPath(g, { rin: rin + 2, rout: rout - 2, a0: a0 + 2 / rm, a1: a1 - 2 / rm }, s, false); g.fillStyle = 'rgba(168, 187, 152, 0.5)'; g.fill(); });
+    const budsAtEnd = hash(s, 41) > 0.5, span = a1 - a0, budStart = budsAtEnd ? a0 + span * 0.5 : a0, budEnd = budsAtEnd ? a1 : a0 + span * 0.5;
+    const buds = ['#9E88CF', '#B9A6E4', '#8A74BD'];
+    for (let k = 0; k < 7; k++) {
+      const off = (k - 3) * th * 0.11;
+      const spread = (a) => off * (1 + 0.4 * (budsAtEnd ? (a - a0) / span : (a1 - a) / span));
+      g.strokeStyle = k % 2 ? '#7F9C6C' : '#8FAA7C'; g.lineWidth = 1;
+      g.beginPath(); for (let i = 0; i <= 16; i++) { const a = a0 + (span * i) / 16; const [x, y] = P2(a, rm + spread(a)); if (i) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke();
+      let i = 0;
+      for (let a = budStart; a < budEnd; a += 4.2 / rm, i++) {
+        g.fillStyle = buds[(i + k) % 3]; ell(g, ...P2(a, rm + spread(a) + (i % 2 ? 1 : -1)), 2.2, 1.4, a + Math.PI / 2 + (i % 2 ? 0.5 : -0.5));
+      }
+    }
+    const ta = budsAtEnd ? a0 + span * 0.42 : a0 + span * 0.58, [tx, ty] = P2(ta, rm);
+    if (!(run.first && hasTreasure(s))) { g.strokeStyle = P.twine; g.lineWidth = 3; line(g, P2(ta, rm - th * 0.42), P2(ta, rm + th * 0.42)); }
+  }
+  const RUN = { [T_TWIG]: runTwig, [T_KNIT]: runKnit, [T_PUFF]: runPuff, [T_QUILT]: runFabric, [T_GINGHAM]: runFabric, [T_CLOVER]: runClover, [T_LAV]: runLavender };
+  // Found treasures: one on about one piece in five. They're drawn after every piece,
+  // so a neighbour overlapping never hides one.
+  function ladybird(g, x, y, r, rot, col = '#E0736E') {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.fillStyle = '#4A3B36'; dot(g, 0, -r * 0.85, r * 0.5);
+    g.fillStyle = col; ell(g, 0, 0, r * 0.85, r);
+    g.strokeStyle = '#4A3B36'; g.lineWidth = 0.8; line(g, [0, -r], [0, r]);
+    g.fillStyle = '#4A3B36'; for (const [dx, dy] of [[-0.4, -0.2], [0.42, -0.3], [-0.35, 0.45], [0.4, 0.4]]) dot(g, dx * r, dy * r, r * 0.17);
+    g.fillStyle = 'rgba(255, 255, 255, 0.6)'; ell(g, -r * 0.3, -r * 0.45, r * 0.18, r * 0.1, -0.6);
+    g.restore();
+  }
+  function drawTreasure(g, q, run) {
+    const { rin, rout, a0, a1 } = q, rm = (rin + rout) / 2, th = rout - rin, m = run.m, s = run.seed, col = keepCol(m, s);
+    withShadow(g, 4, 1.5, () => {
+      if (m === T_TWIG) { // a pink ribbon tied round the bundle instead of twine
+        const am = (a0 + a1) / 2, w = (a1 - a0) * rm, [x, y] = P2(am, rin + th * 0.72), px = -Math.sin(am), py = Math.cos(am);
+        g.strokeStyle = col; g.lineWidth = 4.2; g.lineCap = 'butt';
+        line(g, [x - px * (w / 2 + 2), y - py * (w / 2 + 2)], [x + px * (w / 2 + 2), y + py * (w / 2 + 2)]);
+        ribbonBow(g, x, y, 6.5, am + Math.PI / 2, col);
+      } else if (m === T_KNIT) { // a felt heart charm hanging off on a thread
+        const am = a0 + (a1 - a0) * 0.3, [x, y] = P2(am, rout - 3), end = P2(am + 0.035, rout + 6);
+        g.strokeStyle = '#FBF4EC'; g.lineWidth = 1; line(g, [x, y], end);
+        g.save(); g.translate(...P2(am + 0.035, rout + 10)); g.rotate(am - Math.PI / 2);
+        g.fillStyle = col; heartPath(g, 7); g.fill();
+        g.setLineDash([1.4, 1.4]); g.strokeStyle = variantOf(s) === 1 ? '#C98F8F' : '#FFF4EE'; g.lineWidth = 0.9; heartPath(g, 5); g.stroke(); g.setLineDash([]);
+        g.restore();
+      } else if (m === T_PUFF) { // a big lilac button sewn into the first cushion
+        const n = Math.max(1, Math.round(((a1 - a0) * rm) / (th * 1.05))), bm = a0 + (a1 - a0) / n / 2;
+        sewingButton(g, ...P2(bm, rm), 6, col);
+        g.strokeStyle = '#FBF4EC'; g.lineWidth = 1; const [x, y] = P2(bm, rm);
+        line(g, [x - 1.5, y - 1.5], [x + 1.5, y + 1.5]); line(g, [x + 1.5, y - 1.5], [x - 1.5, y + 1.5]);
+      } else if (m === T_QUILT) { // a stitched gingham patch
+        patch(g, ...P2(a0 + (a1 - a0) * 0.62, rm), th * 0.34, (a0 + a1) / 2 + 0.2, col);
+      } else if (m === T_GINGHAM) { // a length of lace along the outer edge, with a tiny bow
+        lace(g, rout - 0.5, a0 + (a1 - a0) * 0.12, a1 - (a1 - a0) * 0.12, true);
+        ribbonBow(g, ...P2(a0 + (a1 - a0) * 0.5, rout + 1), 5, (a0 + a1) / 2 + Math.PI / 2, col);
+      } else if (m === T_CLOVER) { // a felt ladybird sitting on a leaf
+        const a = a0 + (a1 - a0) * (0.3 + hash(s, 61) * 0.4);
+        ladybird(g, ...P2(a, rm + th * 0.12), 5.5, a + hash(s, 62) * 2, col);
+      } else if (m === T_LAV) { // tied with a ribbon instead of twine
+        const budsAtEnd = hash(s, 41) > 0.5, ta = budsAtEnd ? a0 + (a1 - a0) * 0.42 : a0 + (a1 - a0) * 0.58;
+        g.strokeStyle = col; g.lineWidth = 4; g.lineCap = 'butt'; line(g, P2(ta, rm - th * 0.42), P2(ta, rm + th * 0.42));
+        ribbonBow(g, ...P2(ta, rm), 6, ta + Math.PI / 2, col);
+      }
+    });
+  }
+  function drawCells(g, list, alpha = 1) {
+    g.save();
+    g.globalAlpha = alpha;
+    const runs = toRuns(list).map((run) => [run, personality(run)]);
+    for (const [run, q] of runs) RUN[run.m](g, q, run);
+    for (const [run, q] of runs) if (run.first && hasTreasure(run.seed)) drawTreasure(g, q, run);
+    g.restore();
+  }
+
+  function cellsFromGrid(skip) {
+    const out = [];
+    for (let r = 0; r < playRings; r++) {
+      for (let s = 0; s < SLOTS; s++) {
+        const c = grid[r][s];
+        if (!c || (skip && skip.has(c.pid))) continue;
+        out.push({ m: c.m, rin: ringIn(r), rout: ringOut(r), a0: slotAngle(s) - STEP / 2, a1: slotAngle(s) + STEP / 2, seed: c.seed ?? c.pid, idx: r + s, pid: c.pid });
+      }
+    }
+    return out;
+  }
+  function pieceCells(p, rinOf, aOf) {
+    const set = new Set(p.cells.map((c) => c[0] + ',' + c[1]));
+    return p.cells.map(([dr, ds]) => {
+      const rin = rinOf(dr), a0 = aOf(ds);
+      return {
+        m: p.m, rin, rout: rin + rw, a0, a1: a0 + STEP, seed: p.seed, idx: dr + ds,
+        sh: { in: set.has(dr - 1 + ',' + ds), out: set.has(dr + 1 + ',' + ds), ccw: set.has(dr + ',' + (ds - 1)), cw: set.has(dr + ',' + (ds + 1)) },
+      };
+    });
+  }
+  const placedCells = (p, r, s) => pieceCells(p, (dr) => ringIn(r + dr), (ds) => slotAngle(s + ds) - STEP / 2);
+  // a piece floating free, centred on angle `a` at distance `d` from the nest's centre
+  const freeCells = (p, a, d) => pieceCells(p, (dr) => d + (dr - p.mdr - 0.5) * rw, (ds) => a + (ds - p.mds - 0.5) * STEP);
+
+  // ---------- Drawing: walls ----------
+  // little things tucked into the seams of a built layer
+  function tuck(g, m, a, rin, rout, seed) {
+    const rm = (rin + rout) / 2, th = rout - rin, [x, y] = P2(a, rm);
+    if (m === T_TWIG) {
+      g.strokeStyle = P.twig; g.lineWidth = 3; g.lineCap = 'round'; line(g, P2(a - 7 / rm, rin + 2), P2(a + 7 / rm, rout - 2));
+      leaf(g, x, y, th * 0.45, a + 0.7, '#86A571');
+    } else if (m === T_CLOVER) {
+      clover(g, x, y, th * 0.28, seed, '#86A571'); blossom(g, x + 3, y - 2, th * 0.13);
+    } else if (m === T_KNIT) {
+      g.strokeStyle = shade(MATS[T_KNIT].col, 0.2); g.lineWidth = 2; g.lineCap = 'round';
+      for (let i = 0; i < 3; i++) line(g, P2(a + (i * 3 - 4) / rm, rin + 1), P2(a + (i * 3 + 2) / rm, rout - 1));
+    } else if (m === T_QUILT) {
+      g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2);
+      g.fillStyle = MATS[T_QUILT].col; heartPath(g, th * 0.26); g.fill();
+      g.setLineDash([1.4, 1.4]); g.strokeStyle = '#FFF4EE'; g.lineWidth = 0.8; heartPath(g, th * 0.19); g.stroke(); g.setLineDash([]);
+      g.restore();
+    } else if (m === T_PUFF) {
+      sewingButton(g, x, y, th * 0.2, '#E2B24F');
+    } else if (m === T_GINGHAM) {
+      g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = MATS[T_GINGHAM].col;
+      ell(g, -3.2, 0, 3.4, 2.2, 0.3); ell(g, 3.2, 0, 3.4, 2.2, -0.3); g.fillStyle = shade(MATS[T_GINGHAM].col, -0.2); dot(g, 0, 0, 1.6);
+      g.restore();
+    } else if (m === T_LAV) {
+      g.strokeStyle = '#7F9C6C'; g.lineWidth = 1; line(g, P2(a, rin + 3), P2(a + 10 / rm, rout - 2));
+      g.fillStyle = '#9E88CF';
+      for (let i = 0; i < 4; i++) { const t = 0.45 + i * 0.15; ell(g, ...P2(a + (10 / rm) * t, rin + 3 + (th - 5) * t), 2.2, 1.3, a); }
+    }
+  }
+  // a length of ribbon wrapped round the layer and tied in a bow
+  const RIBBONS = ['#E9A0A9', '#A993D8', '#8FA8CC', '#E2B24F'];
+  function ribbonWrap(g, a, rin, rout, col) {
+    const px = -Math.sin(a) * 1.4, py = Math.cos(a) * 1.4, p0 = P2(a, rin - 1), p1 = P2(a, rout + 1);
+    g.lineCap = 'butt';
+    withShadow(g, 3, 1.5, () => { g.strokeStyle = col; g.lineWidth = 5; line(g, p0, p1); });
+    g.strokeStyle = shade(col, 0.35, 0.8); g.lineWidth = 1; line(g, [p0[0] + px, p0[1] + py], [p1[0] + px, p1[1] + py]);
+    ribbonBow(g, ...P2(a, rout + 1), 5, a + Math.PI / 2, col);
+  }
+  // A built layer keeps the real pieces it was made from, seams, overlaps and all. Instead of
+  // a perfect ring of trim, each layer gets one or two hand-finished touches.
+  function drawWall(g, w) {
+    const k = w.ring, rin = ringIn(k), rout = ringOut(k), rm = (rin + rout) / 2, st = w.style;
+    // packed stuffing underneath, so any gap between pieces shows more nest, never bare floor
+    g.save(); sectorPath(g, rin - 0.5, rout + 0.5, 0, TAU); g.fillStyle = '#CDB28A'; g.fill(); g.clip();
+    g.lineWidth = 1.1; g.lineCap = 'round';
+    for (let i = 0; i < 200; i++) {
+      const a = hash(st.seed + i, 3) * TAU, r = rin + hash(i, st.seed) * (rout - rin), l = 5 + hash(i, 7) * 8, t = a + Math.PI / 2 + (hash(i, 9) - 0.5) * 0.9;
+      const [x, y] = P2(a, r), dx = (Math.cos(t) * l) / 2, dy = (Math.sin(t) * l) / 2;
+      g.strokeStyle = hash(i, 11) > 0.5 ? 'rgba(240, 222, 190, 0.75)' : 'rgba(140, 106, 70, 0.45)';
+      line(g, [x - dx, y - dy], [x + dx, y + dy]);
+    }
+    const sh = g.createRadialGradient(0, 0, rin, 0, 0, rout);
+    sh.addColorStop(0, 'rgba(90, 64, 44, 0.32)'); sh.addColorStop(0.5, 'rgba(90, 64, 44, 0)'); sh.addColorStop(1, 'rgba(90, 64, 44, 0.32)');
+    g.fillStyle = sh; g.fillRect(-rout - 2, -rout - 2, rout * 2 + 4, rout * 2 + 4);
+    g.restore();
+    drawCells(g, w.cells.map(([m, pid, seed], s) => ({
+      m, rin, rout, a0: slotAngle(s) - STEP / 2, a1: slotAngle(s) + STEP / 2, seed: seed ?? (pid > 0 ? pid : st.seed + s), idx: k + s, pid,
+    })));
+    const h = (i) => hash(st.seed, i + 50);
+    const seams = [];
+    for (let s = 0; s < SLOTS; s++) if (w.cells[s][1] !== w.cells[mod(s - 1)][1]) seams.push(s);
+    // the second material, tucked into a seam or two
+    if (st.accent >= 0) {
+      for (let i = 0; i < Math.min(2, seams.length); i++) {
+        const s = seams[(Math.floor(h(i) * seams.length) + i * Math.ceil(seams.length / 2)) % seams.length];
+        tuck(g, st.accent, slotAngle(s) - STEP / 2, rin, rout, st.seed + i);
+      }
+    }
+    const a1 = h(3) * TAU, a2 = a1 + 1.6 + h(4) * 2.4, col = RIBBONS[Math.floor(h(5) * RIBBONS.length)];
+    if (st.lining) { // a length of lace along part of the inside, and three stitched hearts
+      lace(g, rin + 1, a1, a1 + 1.7 + h(6) * 0.6, false);
+      g.fillStyle = 'rgba(231, 147, 159, 0.95)';
+      for (let i = 0; i < 3; i++) {
+        const a = a2 + i * 0.17, [x, y] = P2(a, rm + (i % 2 ? 3 : -2));
+        g.save(); g.translate(x, y); g.rotate(a + Math.PI / 2); heartPath(g, 3.2); g.fill(); g.restore();
+      }
+      return;
+    }
+    const touch = (kind, a) => {
+      if (kind === 'ribbon') ribbonWrap(g, a, rin, rout, col);
+      else if (kind === 'patch') patch(g, ...P2(a, rm), (rout - rin) * 0.26, a + 0.3, col);
+      else lace(g, rout - 0.5, a, a + 0.9 + h(9) * 0.5, true);
+    };
+    const kinds = ['ribbon', 'patch', 'lace'], first = Math.floor(h(7) * 3);
+    touch(kinds[first], a1);
+    if (st.tier >= 1) touch(kinds[(first + 1 + Math.floor(h(8) * 2)) % 3], a2);
+  }
+
+  // ---------- Drawing: decorations ----------
+  function standAt(g, a, d) { const [x, y] = P2(a, d); g.translate(x, y); g.rotate(a + Math.PI / 2); } // local -y points outward
+  function pompom(g, x, y, r, col) {
+    g.fillStyle = shade(col, -0.1);
+    for (let k = 0; k < 10; k++) { const b = k * TAU / 10; dot(g, x + Math.cos(b) * r * 0.7, y + Math.sin(b) * r * 0.7, r * 0.34); }
+    g.fillStyle = col; dot(g, x, y, r * 0.84);
+    g.fillStyle = 'rgba(255,255,255,0.45)'; dot(g, x - r * 0.25, y - r * 0.3, r * 0.25);
+  }
+  function star(g, x, y, r, col) {
+    g.fillStyle = col; g.beginPath();
+    for (let k = 0; k < 10; k++) { const b = -Math.PI / 2 + k * Math.PI / 5, d = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(b) * d, y + Math.sin(b) * d); }
+    g.closePath(); g.fill();
+  }
+  const DECO = {
+    // a strand of fairy lights draped loosely over part of the rim, pinned here and there
+    lights(g, d, D, now, s) {
+      const span = 2.6 + hash(d.seed, 1) * 0.8, np = 5, cols = LIGHTS[theme().lights];
+      const pin = (j) => [d.a + (span * j) / np, D - 1 + hash(d.seed, j + 2) * 5];
+      const pts = [];
+      for (let j = 0; j < np; j++) {
+        const [b0, q0] = pin(j), [b1, q1] = pin(j + 1), sag = 8 + hash(d.seed, j + 9) * 7;
+        for (let i = 0; i < 10; i++) { const t = i / 10; pts.push(P2(b0 + (b1 - b0) * t, q0 + (q1 - q0) * t + Math.sin(t * Math.PI) * sag)); }
+      }
+      pts.push(P2(...pin(np)));
+      g.globalAlpha = Math.min(1, s);
+      g.strokeStyle = 'rgba(90, 76, 70, 0.55)'; g.lineWidth = 1; g.lineJoin = 'round';
+      g.beginPath(); pts.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p))); g.stroke();
+      g.fillStyle = P.twine;
+      for (let j = 0; j <= np; j++) dot(g, ...P2(...pin(j)), 2);
+      // they glow a little more as the room darkens, and brightest when the nest is done
+      const glow = 0.3 + dusk * 0.2 + shine * 0.3, halo = 7 + dusk * 2 + shine * 4;
+      for (let i = 3, k = 0; i < pts.length - 2; i += 5, k++) {
+        const [x, y] = pts[i], c = hexRgb(cols[k % 3]), tw = reduced ? 1 : 0.65 + 0.35 * Math.sin(now / 480 + k * 1.9);
+        const hg = g.createRadialGradient(x, y, 1, x, y, halo);
+        hg.addColorStop(0, rgb(c, glow * tw)); hg.addColorStop(0.4, rgb(c, glow * tw * 0.35)); hg.addColorStop(1, rgb(c, 0));
+        g.fillStyle = hg; dot(g, x, y, halo);
+        g.fillStyle = rgb(c, 0.95); dot(g, x, y, 2.5);
+        g.fillStyle = 'rgba(255, 255, 255, 0.75)'; dot(g, x - 0.7, y - 0.7, 0.8);
+      }
+      g.globalAlpha = 1;
+    },
+    ladybirds(g, d, D, now, s) {
+      g.save(); standAt(g, d.a, D + 2); g.scale(s, s);
+      leaf(g, -10, -2, 22, -0.25, '#86A571');
+      ladybird(g, -2, -5, 4.4, 0.5); ladybird(g, 8, 1, 3.6, -0.7, '#E9C45A');
+      g.restore();
+    },
+    pompoms(g, d, D, now, s) {
+      const span = 0.9, cols = ['#C9B7E6', '#E9AEA9', '#EBC46E', '#A7BD99', '#F5EEE6'];
+      g.strokeStyle = 'rgba(120, 100, 90, 0.6)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(...P2(d.a - span / 2, D + 3)); g.quadraticCurveTo(...P2(d.a, D + 16), ...P2(d.a + span / 2, D + 3)); g.stroke();
+      for (let i = 0; i < 5; i++) {
+        const t = i / 4, a = d.a - span / 2 + span * t, rr = D + 3 + Math.sin(t * Math.PI) * 6.5;
+        const [x, y] = P2(a, rr + 4);
+        pompom(g, x, y, boardR * 0.035 * s, cols[(i + d.seed) % 5]);
+      }
+    },
+    feathers(g, d, D, now, s) {
+      for (let i = -1; i <= 1; i++) {
+        const a = d.a + i * 0.12, L = boardR * 0.17 * s, [x, y] = P2(a, D + L * 0.35);
+        drawFeather(g, x, y, L, L * 0.3, a + i * 0.3);
+      }
+    },
+    bow(g, d, D, now, s) {
+      g.save(); standAt(g, d.a, D); g.scale(s, s);
+      const r = boardR * 0.07;
+      g.fillStyle = '#E8A5A2';
+      for (const k of [-1, 1]) ell(g, k * r * 0.8, -r * 0.2, r * 0.8, r * 0.5, k * 0.3);
+      g.beginPath(); g.moveTo(-r * 0.15, 0); g.lineTo(-r * 0.6, r * 1.3); g.lineTo(-r * 0.25, r * 1.2); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(r * 0.15, 0); g.lineTo(r * 0.6, r * 1.3); g.lineTo(r * 0.25, r * 1.2); g.closePath(); g.fill();
+      g.fillStyle = shade('#E8A5A2', -0.15); dot(g, 0, -r * 0.2, r * 0.3);
+      g.restore();
+    },
+    bunting(g, d, D, now, s) {
+      const span = 1.0, cols = [P.lav, P.rose, P.honey, P.sage];
+      g.strokeStyle = 'rgba(120, 100, 90, 0.6)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(...P2(d.a - span / 2, D + 2)); g.quadraticCurveTo(...P2(d.a, D + 14), ...P2(d.a + span / 2, D + 2)); g.stroke();
+      for (let i = 0; i < 7; i++) {
+        const t = (i + 0.5) / 7, a = d.a - span / 2 + span * t, rr = D + 2 + Math.sin(t * Math.PI) * 6;
+        g.save(); standAt(g, a, rr); g.scale(s, s);
+        g.fillStyle = cols[i % 4]; g.beginPath(); g.moveTo(-5, 0); g.lineTo(5, 0); g.lineTo(0, -11); g.closePath(); g.fill();
+        g.restore();
+      }
+    },
+    mushrooms(g, d, D, now, s) {
+      for (let i = 0; i < 3; i++) {
+        g.save(); standAt(g, d.a + (i - 1) * 0.09, D - 2); g.scale(s * (1 - i * 0.18), s * (1 - i * 0.18));
+        g.fillStyle = '#F4EADB'; g.fillRect(-2.2, -9, 4.4, 9);
+        g.fillStyle = i === 1 ? '#D98C8C' : '#E7B7A6'; g.beginPath(); g.ellipse(0, -9, 7, 5, 0, Math.PI, 0); g.fill();
+        g.fillStyle = '#FFF7EC'; dot(g, -2.5, -11, 1); dot(g, 2, -12, 1.2); dot(g, 4, -10, 0.8);
+        g.restore();
+      }
+    },
+    flowers(g, d, D, now, s) {
+      for (let i = 0; i < 3; i++) {
+        const [x, y] = P2(d.a + (i - 1) * 0.1, D + 4 + (i % 2) * 5), r = 5 * s;
+        g.fillStyle = '#8FAA7C'; ell(g, x + 4, y + 3, 4 * s, 1.6 * s, d.a);
+        g.fillStyle = '#FFFDF7';
+        for (let k = 0; k < 6; k++) { const b = (k * TAU) / 6; dot(g, x + Math.cos(b) * r * 0.7, y + Math.sin(b) * r * 0.7, r * 0.42); }
+        g.fillStyle = P.honey; dot(g, x, y, r * 0.38);
+      }
+    },
+    bells(g, d, D, now, s) {
+      for (let i = 0; i < 2; i++) {
+        const sway = reduced ? 0 : Math.sin(now / 500 + i) * 0.18;
+        g.save(); standAt(g, d.a + (i - 0.5) * 0.1, D); g.rotate(Math.PI + sway); g.scale(s, s);
+        g.strokeStyle = '#E8A5A2'; g.lineWidth = 1.4; line(g, [0, 0], [0, 7]);
+        const gr = g.createRadialGradient(-2, 9, 1, 0, 11, 6); gr.addColorStop(0, '#FBE7B0'); gr.addColorStop(1, '#D9A441');
+        g.fillStyle = gr; dot(g, 0, 12, 5.2);
+        g.strokeStyle = '#A57A2A'; g.lineWidth = 0.8; line(g, [-4.6, 12], [4.6, 12]);
+        g.fillStyle = '#7A5A2A'; dot(g, 0, 14.5, 1);
+        g.restore();
+      }
+    },
+    moon(g, d, D, now, s) {
+      const sway = reduced ? 0 : Math.sin(now / 900) * 0.12;
+      g.save(); standAt(g, d.a, D); g.rotate(Math.PI + sway); g.scale(s, s);
+      g.strokeStyle = 'rgba(120, 100, 90, 0.6)'; g.lineWidth = 0.8; line(g, [0, 0], [0, 10]);
+      g.fillStyle = '#F6E3A8'; dot(g, 0, 20, 10);
+      g.globalCompositeOperation = 'destination-out'; dot(g, 5, 17, 9); g.globalCompositeOperation = 'source-over';
+      g.fillStyle = 'rgba(246, 227, 168, 0.25)'; dot(g, -2, 20, 14);
+      g.restore();
+    },
+    stars(g, d, D, now, s) {
+      for (let i = 0; i < 7; i++) {
+        const a = d.a - 0.5 + i / 6, tw = reduced ? 1 : 0.7 + 0.3 * Math.sin(now / 350 + i * 2);
+        const [x, y] = P2(a, D + 8 + (i % 2) * 6);
+        star(g, x, y, 4 * s * tw, i % 2 ? '#F6DFA4' : '#FFF4DA');
+      }
+    },
+    acorns(g, d, D, now, s) {
+      for (let i = 0; i < 2; i++) {
+        g.save(); standAt(g, d.a + (i - 0.5) * 0.08, D - 1); g.rotate((i - 0.5) * 0.5); g.scale(s, s);
+        g.fillStyle = '#C8955E'; ell(g, 0, -7, 4.2, 5.4);
+        g.fillStyle = '#8A6440'; g.beginPath(); g.ellipse(0, -10.5, 5, 3, 0, Math.PI, 0); g.fill();
+        g.strokeStyle = '#8A6440'; g.lineWidth = 1.2; line(g, [0, -13], [1, -15.5]);
+        g.restore();
+      }
+    },
+    heart(g, d, D, now, s) {
+      const sway = reduced ? 0 : Math.sin(now / 700) * 0.1;
+      g.save(); standAt(g, d.a, D); g.rotate(Math.PI + sway); g.scale(s, s);
+      g.strokeStyle = 'rgba(120, 100, 90, 0.6)'; g.lineWidth = 0.8; line(g, [0, 0], [0, 7]);
+      g.translate(0, 16); g.rotate(Math.PI);
+      g.fillStyle = MATS[T_QUILT].col; heartPath(g, 9); g.fill();
+      g.save(); heartPath(g, 9); g.clip();
+      g.strokeStyle = shade(MATS[T_QUILT].col, -0.15); g.lineWidth = 0.9;
+      for (let y = -10; y < 10; y += 3.2) for (let x = -10; x < 10; x += 3.6) { g.beginPath(); g.moveTo(x - 1.2, y - 1); g.lineTo(x, y + 1); g.lineTo(x + 1.2, y - 1); g.stroke(); }
+      g.restore(); g.restore();
+    },
+    buttons(g, d, D, now, s) {
+      const cols = ['#E2B24F', '#A993D8', '#E9A0A9'];
+      for (let i = 0; i < 3; i++) { const [x, y] = P2(d.a + (i - 1) * 0.085, D + 3 + (i % 2) * 5); sewingButton(g, x, y, 5.4 * s, cols[i]); }
+    },
+    stamp(g, d, D, now, s) {
+      g.save(); standAt(g, d.a, D + 6); g.rotate(0.18); g.scale(s, s);
+      g.fillStyle = 'rgba(74, 59, 54, 0.15)'; g.fillRect(-8, -11, 17, 21);
+      g.fillStyle = '#FFF8EE'; g.fillRect(-9, -12, 17, 21);
+      g.fillStyle = '#EADFD2';
+      for (let i = 0; i < 6; i++) { dot(g, -9 + i * 3.4, -12, 1); dot(g, -9 + i * 3.4, 9, 1); }
+      for (let i = 0; i < 7; i++) { dot(g, -9, -12 + i * 3.5, 1); dot(g, 8, -12 + i * 3.5, 1); }
+      g.fillStyle = '#DCD2F0'; g.fillRect(-6.5, -9.5, 12, 16);
+      g.strokeStyle = '#7F9C6C'; g.lineWidth = 0.9; line(g, [-0.5, 5], [-0.5, -6]);
+      g.fillStyle = '#8F79C4'; for (let i = 0; i < 5; i++) ell(g, i % 2 ? 0.8 : -1.8, -6 + i * 2, 1.4, 1, 0);
+      g.restore();
+    },
+    charm(g, d, D, now, s) {
+      const sway = reduced ? 0 : Math.sin(now / 800 + 1) * 0.12;
+      g.save(); standAt(g, d.a, D); g.rotate(Math.PI + sway); g.scale(s, s);
+      g.strokeStyle = 'rgba(120, 100, 90, 0.6)'; g.lineWidth = 0.8; line(g, [0, 0], [0, 7]);
+      g.translate(0, 15); g.rotate(Math.PI);
+      g.fillStyle = '#E9A0A9'; dot(g, 0, 0, 7.5);
+      g.beginPath(); g.moveTo(-6.5, -2); g.lineTo(-5, -9.5); g.lineTo(-1.5, -6); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(6.5, -2); g.lineTo(5, -9.5); g.lineTo(1.5, -6); g.closePath(); g.fill();
+      g.fillStyle = P.ink; dot(g, -2.6, 0, 0.9); dot(g, 2.6, 0, 0.9); dot(g, 0, 1.8, 0.7);
+      g.restore();
+    },
+    fireflies(g, d, D, now) {
+      for (let i = 0; i < 9; i++) {
+        const t = now / 1000, a = d.seed + i * 0.7 + t * (0.05 + (i % 3) * 0.03);
+        const rr = D + 14 + Math.sin(t * 0.8 + i) * 16, [x, y] = P2(a, rr);
+        const tw = 0.5 + 0.5 * Math.sin(t * 3 + i * 2);
+        g.fillStyle = `rgba(255, 236, 160, ${0.25 * tw})`; dot(g, x, y, 7);
+        g.fillStyle = `rgba(255, 244, 200, ${0.6 + 0.4 * tw})`; dot(g, x, y, 1.8);
+      }
+    },
+    butterfly(g, d, D, now) {
+      const t = now / 1000, a = d.seed + t * 0.12, rr = D + 30 + Math.sin(t * 1.3) * 12, [x, y] = P2(a, rr);
+      const flap = reduced ? 0.8 : 0.35 + 0.65 * Math.abs(Math.sin(t * 9));
+      g.save(); g.translate(x, y); g.rotate(a + Math.PI);
+      g.scale(flap, 1);
+      g.fillStyle = '#C9B7E6'; ell(g, -5, -3, 5, 4, -0.4); ell(g, 5, -3, 5, 4, 0.4);
+      g.fillStyle = '#E9AEA9'; ell(g, -4, 3, 3.4, 2.8, 0.4); ell(g, 4, 3, 3.4, 2.8, -0.4);
+      g.restore();
+      g.fillStyle = P.ink; ell(g, x, y, 1, 4, a + Math.PI / 2);
+    },
+  };
+  function drawDecorations(g, now) {
+    const D = boardR + rimBase * 0.55;
+    for (const d of decor) {
+      const age = d.born ? Math.min(1, (now - d.born) / 600) : 1, s = reduced ? 1 : Math.max(0.01, easeOutBack(age));
+      g.save(); DECO[d.kind](g, d, D, now, s); g.restore();
+    }
+  }
+
+  // ---------- Drawing: Erwu, curled up ----------
+  function drawFace(g, s, o) {
+    g.save();
+    g.translate(0, -0.06 * s);
+    for (const side of [-1, 1]) {
+      g.save();
+      g.translate(side * 0.4 * s, -0.36 * s);
+      g.rotate(side * ((side === o.earSide ? Math.sin(o.twitch * Math.PI * 2) * 0.32 : 0) - o.perk * 0.15));
+      g.fillStyle = P.fur;
+      g.beginPath();
+      g.moveTo(side * 0.22 * s, 0.14 * s);
+      g.quadraticCurveTo(side * 0.21 * s, -0.36 * s, side * 0.1 * s, -0.45 * s);
+      g.quadraticCurveTo(side * 0.04 * s, -0.47 * s, -side * 0.22 * s, -0.1 * s);
+      g.closePath(); g.fill();
+      g.fillStyle = P.ear;
+      g.beginPath();
+      g.moveTo(side * 0.13 * s, 0.03 * s);
+      g.quadraticCurveTo(side * 0.13 * s, -0.25 * s, side * 0.08 * s, -0.32 * s);
+      g.quadraticCurveTo(side * 0.02 * s, -0.3 * s, -side * 0.1 * s, -0.08 * s);
+      g.closePath(); g.fill();
+      g.restore();
+    }
+    const hf = g.createRadialGradient(-0.12 * s, -0.34 * s, 0.05 * s, 0, 0, 0.75 * s);
+    hf.addColorStop(0, '#8E8B9D'); hf.addColorStop(0.6, P.fur); hf.addColorStop(1, '#737184');
+    g.fillStyle = hf;
+    g.beginPath(); g.ellipse(0, 0, 0.64 * s, 0.58 * s, 0, 0, TAU); g.fill();
+    for (const side of [-1, 1]) { g.beginPath(); g.ellipse(side * 0.3 * s, 0.24 * s, 0.33 * s, 0.27 * s, 0, 0, TAU); g.fill(); }
+    g.beginPath(); g.ellipse(0, 0.33 * s, 0.27 * s, 0.22 * s, 0, 0, TAU); g.fill();
+    const tuft = (x, y, dx, dy, w) => { g.beginPath(); g.moveTo(x - w * s, y); g.lineTo(x + dx * s, y + dy * s); g.lineTo(x + w * s, y); g.closePath(); g.fill(); };
+    tuft(-0.14 * s, -0.54 * s, -0.04, -0.1, 0.06); tuft(0, -0.57 * s, 0.01, -0.1, 0.06); tuft(0.13 * s, -0.54 * s, 0.05, -0.09, 0.06);
+    for (const side of [-1, 1]) { g.beginPath(); g.moveTo(side * 0.58 * s, 0.14 * s); g.lineTo(side * 0.72 * s, 0.26 * s); g.lineTo(side * 0.56 * s, 0.32 * s); g.closePath(); g.fill(); }
+    g.strokeStyle = 'rgba(70, 64, 80, 0.45)'; g.lineWidth = Math.max(1, s * 0.035); g.lineCap = 'round';
+    for (const [x, y0, y1] of [[-0.1, -0.46, -0.3], [0, -0.5, -0.32], [0.1, -0.46, -0.3]]) { g.beginPath(); g.moveTo(x * s, y0 * s); g.lineTo(x * 0.8 * s, y1 * s); g.stroke(); }
+
+    const er = 0.135 * s, yawning = o.yawn > 0.15;
+    for (const side of [-1, 1]) {
+      const ex = side * 0.28 * s, ey = 0;
+      g.lineCap = 'round'; g.strokeStyle = P.pupil;
+      if (yawning) { // eyes squeezed shut
+        g.lineWidth = Math.max(1.6, s * 0.06);
+        g.beginPath(); g.moveTo(ex - er * 0.8, ey - er * 0.2); g.lineTo(ex + side * er * 0.1, ey + er * 0.2); g.lineTo(ex + er * 0.8, ey - er * 0.2); g.stroke();
+        continue;
+      }
+      if (o.happy > 0) {
+        g.lineWidth = Math.max(1.4, s * 0.05);
+        g.beginPath(); g.arc(ex, ey + 0.05 * s, er * 0.75, 1.15 * Math.PI, 1.85 * Math.PI); g.stroke();
+        continue;
+      }
+      const open = (o.peek && side === 1) || o.perk > 0.5 || o.slow > 0.08;
+      if (!open) {
+        g.lineWidth = Math.max(1.4, s * 0.05);
+        g.beginPath(); g.arc(ex, ey - 0.03 * s, er * 0.8, 0.18 * Math.PI, 0.82 * Math.PI); g.stroke();
+        continue;
+      }
+      // an eye open a crack, unimpressed, watching the piece you're holding
+      g.save();
+      g.beginPath(); g.arc(ex, ey, er, 0, TAU); g.clip();
+      g.fillStyle = P.eye; g.fillRect(ex - er, ey - er, er * 2, er * 2);
+      const lx = o.look == null ? 0 : Math.cos(o.look) * 0.045 * s, ly = o.look == null ? 0 : Math.sin(o.look) * 0.045 * s;
+      g.fillStyle = P.pupil; g.beginPath(); g.ellipse(ex + lx, ey + ly, er * (o.perk > 0.5 ? 0.55 : 0.3), er * 0.8, 0, 0, TAU); g.fill();
+      const lid = o.perk > 0.5 ? 0.5 : o.slow > 0.08 && !(o.peek && side === 1) ? 2 - 1.2 * o.slow : 1;
+      const top = ey - er, lidY = top + er * lid;
+      g.fillStyle = P.fur;
+      g.beginPath(); g.moveTo(ex - er * 1.2, top - er); g.lineTo(ex + er * 1.2, top - er);
+      g.lineTo(ex + er * 1.2, lidY + er * 0.12); g.lineTo(ex - er * 1.2, lidY - er * 0.12); g.closePath(); g.fill();
+      g.strokeStyle = P.pupil; g.lineWidth = Math.max(1, s * 0.035);
+      g.beginPath(); g.moveTo(ex - er, lidY - er * 0.1); g.lineTo(ex + er, lidY + er * 0.1); g.stroke();
+      g.restore();
+    }
+    g.fillStyle = `rgba(231, 147, 159, ${0.32 + Math.min(1, o.happy) * 0.25})`;
+    for (const side of [-1, 1]) ell(g, side * 0.4 * s, 0.2 * s, 0.1 * s, 0.06 * s);
+    g.fillStyle = P.nose;
+    g.beginPath();
+    g.moveTo(-0.075 * s, 0.17 * s); g.quadraticCurveTo(0, 0.14 * s, 0.075 * s, 0.17 * s);
+    g.quadraticCurveTo(0.02 * s, 0.25 * s, 0, 0.255 * s); g.quadraticCurveTo(-0.02 * s, 0.25 * s, -0.075 * s, 0.17 * s);
+    g.fill();
+    if (yawning) { // a big pink yawn
+      g.fillStyle = '#6B3B45'; ell(g, 0, 0.38 * s, 0.13 * s * o.yawn + 0.02 * s, 0.17 * s * o.yawn);
+      g.fillStyle = '#E7939F'; ell(g, 0, 0.44 * s, 0.08 * s * o.yawn, 0.06 * s * o.yawn);
+    } else {
+      g.strokeStyle = P.nose; g.lineWidth = Math.max(1, s * 0.03);
+      g.beginPath(); g.moveTo(0, 0.255 * s); g.lineTo(0, 0.29 * s);
+      g.arc(-0.05 * s, 0.29 * s, 0.05 * s, 0, 0.8 * Math.PI);
+      g.moveTo(0, 0.29 * s); g.arc(0.05 * s, 0.29 * s, 0.05 * s, Math.PI, 0.2 * Math.PI, true);
+      g.stroke();
+    }
+    g.strokeStyle = 'rgba(140, 122, 114, 0.45)'; g.lineWidth = 1;
+    for (const side of [-1, 1]) for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(side * 0.44 * s, 0.26 * s + k * 0.04 * s); g.lineTo(side * 0.95 * s, 0.2 * s + k * 0.13 * s); g.stroke(); }
+    g.restore();
+  }
+  // Erwu from above: curled like a croissant, chin on her paws, tail wrapped round.
+  // She breathes slowly, flicks an ear now and then, and curls up tighter as the night goes on.
+  function drawErwu(g, R, now, o) {
+    const s = R * 0.6, curl = o.curl || 0;
+    const breathe = reduced ? 0 : Math.sin(now / 1700) * 0.028;
+    g.save();
+    if (o.turn) { g.rotate(o.turn); const k = 1 + Math.sin(o.turnT * Math.PI) * 0.12; g.scale(k, k); }
+    const sc = (1 + o.bounce * 0.04) * (1 - curl * 0.04);
+    g.scale(sc, sc);
+    g.fillStyle = 'rgba(74, 59, 54, 0.16)';
+    g.beginPath(); g.ellipse(s * 0.1, s * 0.22, s * 1.22, s * 1.04, 0, 0, TAU); g.fill();
+    // body, lit from above, with a little stretch through the back
+    g.save();
+    g.translate(s * 0.3, 0); g.scale(1 + breathe + o.yawn * 0.03 + o.stretch * 0.08, 1 + breathe - o.stretch * 0.03); g.translate(-s * 0.3, 0);
+    const fur = g.createRadialGradient(s * 0.05, -s * 0.4, s * 0.1, s * 0.25, s * 0.1, s * 1.2);
+    fur.addColorStop(0, '#9895A7'); fur.addColorStop(0.55, P.fur); fur.addColorStop(1, '#646274');
+    g.fillStyle = fur;
+    g.beginPath(); g.ellipse(s * 0.2, s * 0.05, s * 1.02, s * 0.86, -0.2, 0, TAU); g.fill();
+    g.beginPath(); g.ellipse(s * 0.58, s * 0.3, s * 0.58, s * 0.52, 0, 0, TAU); g.fill();
+    // tufts where the fur fluffs out along her back
+    g.save(); g.translate(s * 0.2, s * 0.05); g.rotate(-0.2);
+    const E = (a, k = 1) => [Math.cos(a) * s * 1.02 * k, Math.sin(a) * s * 0.86 * k];
+    for (let i = 0; i < 10; i++) {
+      const a = -2.7 + i * 0.3 + (hash(i, 4) - 0.5) * 0.08;
+      g.beginPath(); g.moveTo(...E(a - 0.08, 0.985)); g.lineTo(...E(a + 0.02, 1.06 + hash(i, 5) * 0.03)); g.lineTo(...E(a + 0.09, 0.985)); g.closePath(); g.fill();
+    }
+    g.restore();
+    g.lineCap = 'round';
+    g.strokeStyle = 'rgba(70, 64, 80, 0.22)'; g.lineWidth = s * 0.06;
+    for (const k of [0, 1, 2]) { g.beginPath(); g.arc(s * 0.3, s * 0.05, s * (0.5 + k * 0.16), -1.4, -0.5); g.stroke(); }
+    g.strokeStyle = 'rgba(214, 210, 226, 0.3)'; g.lineWidth = s * 0.022;
+    for (let i = 0; i < 7; i++) {
+      const a = -2.2 + i * 0.32, r = s * (0.62 + hash(i, 9) * 0.26);
+      g.beginPath(); g.arc(s * 0.2, s * 0.05, r, a, a + 0.12); g.stroke();
+    }
+    g.restore();
+    // purr: soft ripples off her back while she kneads
+    if (o.knead > 0) {
+      g.strokeStyle = `rgba(139, 115, 179, ${0.35 * o.knead})`; g.lineWidth = 1.2;
+      for (let k = 0; k < 3; k++) {
+        const ph = (now / 500 + k / 3) % 1;
+        g.globalAlpha = 1 - ph;
+        g.beginPath(); g.arc(s * 0.35, s * 0.1, s * (1.05 + ph * 0.35), -1.2, 0.4); g.stroke();
+      }
+      g.globalAlpha = 1;
+    }
+    // tail, curled round the front; it swishes when you're nearly out of room,
+    // and the very tip has a mind of its own
+    const flick = (reduced ? 0 : Math.sin(now / (o.worried ? 180 : 900)) * (o.worried ? 0.16 : 0.05)) + o.happy * 0.06 + o.stretch * 0.1;
+    const wrap = curl * 0.12, tip = (o.tailTip || 0) * Math.sin(now / 95) * 0.12;
+    const ex = -s * (0.85 + flick - wrap), ey = s * (0.55 + wrap * 0.5);
+    g.strokeStyle = P.fur; g.lineWidth = s * 0.3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(s * 1.0, s * 0.3);
+    g.quadraticCurveTo(s * 1.0, s * 1.05, s * 0.05, s * 0.95);
+    g.quadraticCurveTo(-s * 0.55, s * (0.9 + flick), ex, ey); g.stroke();
+    g.lineWidth = s * 0.25;
+    g.beginPath(); g.moveTo(ex, ey); g.quadraticCurveTo(ex - s * 0.07, ey - s * 0.1, ex - s * (0.02 + tip), ey - s * (0.19 + tip * 0.4)); g.stroke();
+    g.strokeStyle = 'rgba(70, 64, 80, 0.2)'; g.lineWidth = s * 0.06;
+    for (const t of [0.35, 0.55, 0.75]) { const x = s * (1.0 - t * 1.3), y = s * (0.3 + t * 0.9 - t * t * 0.5); g.beginPath(); g.arc(x, y, s * 0.13, 0.8, 2.2); g.stroke(); }
+    // head: lifts for a yawn and a stretch, tucks down as she gets sleepier
+    g.save();
+    g.translate(-s * 0.36 - o.yawn * s * 0.06 - o.stretch * s * 0.12, -s * 0.12 - o.yawn * s * 0.16 - o.perk * s * 0.04 + curl * s * 0.04);
+    g.rotate(-0.12 - o.yawn * 0.2 - o.stretch * 0.1 + curl * 0.06);
+    drawFace(g, s * 0.92, o);
+    g.restore();
+    // front paws: reach right out in a stretch, press in turn while kneading
+    [[-s * 0.62, s * 0.42], [-s * 0.22, s * 0.52]].forEach(([x, y], i) => {
+      x -= (o.yawn * 0.34 + o.stretch * 0.5) * s; y += (o.yawn + o.stretch * 0.6) * s * (0.08 + i * 0.06);
+      if (o.knead > 0) y += Math.sin(now / 110 + i * Math.PI) * s * 0.07 * o.knead;
+      g.fillStyle = P.fur; ell(g, x, y, s * 0.2, s * 0.14);
+      g.fillStyle = P.furLight; ell(g, x, y + s * 0.04, s * 0.14, s * 0.08);
+      if (o.stretch > 0.3) { // toes spread
+        g.strokeStyle = 'rgba(70, 64, 80, 0.4)'; g.lineWidth = 1;
+        for (const k of [-1, 0, 1]) line(g, [x - s * 0.17, y + k * s * 0.05], [x - s * 0.11, y + k * s * 0.045]);
+      }
+    });
+    g.restore();
+  }
+  function drawDream(g, now) {
+    const a = Math.min(1, cat.dream * 2, (4.5 - cat.dream) * 2);  // fade in, then out
+    if (a <= 0) return;
+    const bx = coreR * 0.62, by = -coreR * 1.5, br = coreR * 0.46;
+    g.save(); g.globalAlpha = Math.min(1, a);
+    g.fillStyle = 'rgba(255, 251, 245, 0.95)'; g.strokeStyle = 'rgba(74, 59, 54, 0.15)'; g.lineWidth = 1;
+    for (const [x, y, r] of [[coreR * 0.18, -coreR * 0.78, 3], [coreR * 0.36, -coreR * 1.02, 5]]) { dot(g, x, y, r); g.stroke(); }
+    for (let k = 0; k < 6; k++) { const b = (k / 6) * TAU; dot(g, bx + Math.cos(b) * br * 0.55, by + Math.sin(b) * br * 0.42, br * 0.5); }
+    g.save(); g.translate(bx, by); g.scale(0.9 + Math.sin(now / 500) * 0.04, 0.9 + Math.sin(now / 500) * 0.04);
+    const icon = cat.dreamIcon % 3;
+    if (icon === 0) { // a ball of yarn
+      g.fillStyle = MATS[T_KNIT].col; dot(g, 0, 0, br * 0.42);
+      g.strokeStyle = shade(MATS[T_KNIT].col, 0.3); g.lineWidth = 1.1;
+      for (let k = 0; k < 4; k++) { g.beginPath(); g.ellipse(0, 0, br * 0.4, br * 0.16, k * 0.8, 0, TAU); g.stroke(); }
+    } else if (icon === 1) { // a little fish
+      g.fillStyle = '#9DB4C8'; ell(g, 0, 0, br * 0.42, br * 0.24);
+      g.beginPath(); g.moveTo(br * 0.35, 0); g.lineTo(br * 0.62, -br * 0.2); g.lineTo(br * 0.62, br * 0.2); g.closePath(); g.fill();
+      g.fillStyle = P.ink; dot(g, -br * 0.22, -br * 0.04, 1.2);
+    } else { // a butterfly
+      g.fillStyle = '#C9B7E6'; ell(g, -br * 0.22, -br * 0.1, br * 0.24, br * 0.2, -0.4); ell(g, br * 0.22, -br * 0.1, br * 0.24, br * 0.2, 0.4);
+      g.fillStyle = '#E9AEA9'; ell(g, -br * 0.16, br * 0.16, br * 0.15, br * 0.12, 0.4); ell(g, br * 0.16, br * 0.16, br * 0.15, br * 0.12, -0.4);
+      g.fillStyle = P.ink; ell(g, 0, 0, 1, br * 0.25);
+    }
+    g.restore(); g.restore();
+  }
+
+  // ---------- Drawing: the room and the nest floor ----------
+  function knitRows(g, x0, y0, w, h, cell, col, lw) {
+    g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.lineJoin = 'round';
+    for (let y = y0; y < y0 + h + cell; y += cell * 0.8) {
+      for (let x = x0; x < x0 + w + cell; x += cell) {
+        g.beginPath();
+        g.moveTo(x - cell * 0.32, y - cell * 0.28); g.lineTo(x, y + cell * 0.28); g.lineTo(x + cell * 0.32, y - cell * 0.28);
+        g.stroke();
+      }
+    }
+  }
+  // a sprig resting on the tablecloth
+  function sprig(g, x, y, len, rot, kind) {
+    g.save(); g.translate(x, y); g.rotate(rot);
+    g.strokeStyle = '#8FA57E'; g.lineWidth = 1.4; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(0, 0); g.quadraticCurveTo(len * 0.12, -len * 0.5, 0, -len); g.stroke();
+    if (kind === 'lavender') {
+      for (let i = 0; i < 11; i++) { const t = 0.5 + i * 0.047; g.fillStyle = i % 2 ? '#A993D8' : '#8F79C4'; ell(g, i % 2 ? 2 : -2, -len * t, 2.8, 1.7, i % 2 ? 0.5 : -0.5); }
+      leaf(g, 0, -len * 0.25, len * 0.22, -2.4, '#9CB48A');
+    } else {
+      for (let i = 0; i < 6; i++) { const t = 0.22 + i * 0.13; leaf(g, 0, -len * t, len * 0.24, i % 2 ? -0.9 : Math.PI + 0.9, i % 2 ? '#9CB48A' : '#86A571'); }
+      blossom(g, 0, -len, 3.4);
+    }
+    g.restore();
+  }
+  // The room (tablecloth and sprigs) is painted once for the game layout. The nest base
+  // (straw floor, rim, cushion) is painted once at its largest size and scaled, so it can
+  // glide from the landing page into the game.
+  function noisePattern(g) {
+    const n = document.createElement('canvas'); n.width = n.height = 96;
+    const ng = n.getContext('2d'), img = ng.createImageData(96, 96);
+    for (let i = 0; i < img.data.length; i += 4) { const v = Math.random() * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 13; }
+    ng.putImageData(img, 0, 0);
+    return g.createPattern(n, 'repeat');
+  }
+  function paintRoom() {
+    const c = document.createElement('canvas');
+    c.width = canvas.width; c.height = canvas.height;
+    const g = c.getContext('2d'), T = theme(), L = gameL;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    // linen tablecloth: a fine, uneven weave of warm threads, tinted for the night
+    g.fillStyle = T.cloth; g.fillRect(0, 0, W, H);
+    for (let y = 0; y < H; y += 2.2) { g.fillStyle = `rgba(150, 118, 92, ${0.03 + hash(y, 1) * 0.035})`; g.fillRect(0, y, W, 0.7); }
+    for (let x = 0; x < W; x += 2.2) { g.fillStyle = `rgba(150, 118, 92, ${0.025 + hash(x, 2) * 0.03})`; g.fillRect(x, 0, 0.7, H); }
+    g.lineCap = 'round';
+    for (let i = 0; i < 240; i++) {
+      const x = hash(i, 3) * W, y = hash(i, 4) * H, l = 4 + hash(i, 5) * 10;
+      g.strokeStyle = hash(i, 6) > 0.5 ? 'rgba(255, 250, 240, 0.35)' : 'rgba(140, 108, 84, 0.12)'; g.lineWidth = 0.8;
+      line(g, [x, y], [x + l, y + (hash(i, 7) - 0.5) * 2]);
+    }
+    const gr = g.createRadialGradient(L.cx, L.cy, L.R * 0.4, L.cx, L.cy, Math.max(W, H) * 0.75);
+    gr.addColorStop(0, 'rgba(255, 240, 214, 0.7)'); gr.addColorStop(0.45, 'rgba(255, 240, 214, 0.18)'); gr.addColorStop(1, 'rgba(120, 90, 110, 0.12)');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    // a few sprigs of lavender and leaves resting at the edges
+    sprig(g, 4, L.cy + L.R * 0.3, 80, 0.45, 'lavender');
+    sprig(g, 0, L.cy + L.R * 0.45, 62, 0.9, 'leaf');
+    sprig(g, W - 2, L.cy - L.R * 0.35, 70, -0.55, 'leaf');
+    sprig(g, W, L.cy - L.R * 0.2, 76, -0.9, 'lavender');
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.fillStyle = noisePattern(g); g.fillRect(0, 0, c.width, c.height);
+    return c;
+  }
+  function paintNestBase() {
+    const T = theme(), R = Math.max(gameL.R, titleL.R), S = R * 1.3, c = document.createElement('canvas');
+    c.width = c.height = Math.ceil(S * 2 * DPR);
+    const g = c.getContext('2d'), keep = [CX, CY, boardR];
+    setGeometry(0, 0, R);
+    g.setTransform(DPR, 0, 0, DPR, S * DPR, S * DPR);
+    // the nest's shadow on the cloth
+    const ns = g.createRadialGradient(0, 6, boardR * 0.9, 0, 6, boardR * 1.22);
+    ns.addColorStop(0, 'rgba(90, 64, 44, 0.3)'); ns.addColorStop(1, 'rgba(90, 64, 44, 0)');
+    g.fillStyle = ns; dot(g, 0, 6, boardR * 1.22);
+    // straw floor, no grid: the slots only show while you're placing a piece
+    g.fillStyle = P.straw; dot(g, 0, 0, boardR + 2);
+    g.save(); g.beginPath(); g.arc(0, 0, boardR, 0, TAU); g.clip();
+    for (let i = 0; i < 480; i++) {
+      const a = hash(i, 1) * TAU, d = coreR + hash(i, 2) * (boardR - coreR), l = 6 + hash(i, 3) * 11, t = a + Math.PI / 2 + (hash(i, 4) - 0.5) * 1.2;
+      g.strokeStyle = hash(i, 5) > 0.5 ? 'rgba(196, 166, 124, 0.6)' : 'rgba(250, 238, 214, 0.65)';
+      g.lineWidth = 1.2;
+      const x = Math.cos(a) * d, y = Math.sin(a) * d;
+      line(g, [x - Math.cos(t) * l / 2, y - Math.sin(t) * l / 2], [x + Math.cos(t) * l / 2, y + Math.sin(t) * l / 2]);
+    }
+    const sh = g.createRadialGradient(0, 0, boardR * 0.62, 0, 0, boardR);
+    sh.addColorStop(0, 'rgba(120, 90, 60, 0)'); sh.addColorStop(1, 'rgba(120, 90, 60, 0.26)');
+    g.fillStyle = sh; g.fillRect(-boardR, -boardR, boardR * 2, boardR * 2);
+    g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = noisePattern(g); g.fillRect(0, 0, c.width, c.height);
+    g.restore();
+    // the rim: a wreath of twigs and vines, dressed for the night
+    for (let i = 0; i < 170; i++) {
+      const a = hash(i, 11) * TAU, span = 0.22 + hash(i, 12) * 0.35, d = boardR + rimBase * (0.1 + hash(i, 13) * 0.85);
+      g.strokeStyle = [P.twig, P.twigDark, P.twigLight][i % 3]; g.lineWidth = 1.5 + hash(i, 14) * 1.7; g.lineCap = 'round';
+      g.beginPath(); g.arc(0, 0, d, a, a + span); g.stroke();
+    }
+    const greens = T.rim === 'frost' ? ['#A9B8AE', '#C4CEC6'] : ['#86A571', '#9CB48A'];
+    for (let i = 0; i < 34; i++) {
+      const a = (i / 34) * TAU + hash(i, 21) * 0.12, d = boardR + rimBase * (0.2 + hash(i, 22) * 0.7);
+      const [x, y] = P2(a, d);
+      leaf(g, x, y, rimBase * (1.0 + hash(i, 23) * 0.5), a + (i % 2 ? 1.9 : -1.9) + Math.PI / 2, i % 3 ? greens[0] : greens[1]);
+      const [bx, by] = P2(a + 0.04, d + 1);
+      if (T.rim === 'blossom' && i % 4 === 1) blossom(g, bx, by, 2.8);
+      if (T.rim === 'berry' && i % 3 === 1) for (const [dx, dy, col] of [[0, 0, '#D9727A'], [2.6, 1.6, '#E9A0A9'], [-1.6, 2.4, '#C9636C']]) { g.fillStyle = col; dot(g, bx + dx, by + dy, 2); g.fillStyle = 'rgba(255, 255, 255, 0.6)'; dot(g, bx + dx - 0.6, by + dy - 0.6, 0.6); }
+      if (T.rim === 'lavender' && i % 3 === 1) { g.fillStyle = '#9E88CF'; for (let k = 0; k < 4; k++) ell(g, ...P2(a + 0.02 + k * 0.018, d + 2 + (k % 2)), 1.8, 1.1, a); }
+      if (T.rim === 'frost') { g.fillStyle = 'rgba(255, 255, 255, 0.85)'; dot(g, bx, by, i % 3 === 1 ? 1.8 : 0.9); }
+    }
+    // a lace doily under Erwu's cushion
+    const cr = coreR * 0.9, step = 5.2 / (coreR * 1.02);
+    g.fillStyle = 'rgba(74, 59, 54, 0.12)'; dot(g, 0, 3, coreR * 1.06);
+    for (let a = 0; a < TAU; a += step) { g.fillStyle = '#FBF6EE'; dot(g, ...P2(a, coreR * 1.0), 2.8); }
+    g.fillStyle = '#FBF6EE'; dot(g, 0, 0, coreR * 0.99);
+    g.fillStyle = 'rgba(160, 130, 100, 0.3)';
+    for (let a = 0; a < TAU; a += step * 1.4) dot(g, ...P2(a, coreR * 0.945), 0.9);
+    g.fillStyle = T.cushion; dot(g, 0, 0, cr);
+    g.save(); g.beginPath(); g.arc(0, 0, cr - 1, 0, TAU); g.clip();
+    knitRows(g, -cr, -cr, cr * 2, cr * 2, cr * 0.2, shade(T.cushion, -0.14), 1.4);
+    g.restore();
+    g.strokeStyle = shade(T.cushion, -0.2); g.lineWidth = 2; g.beginPath(); g.arc(0, 0, cr, 0, TAU); g.stroke();
+    setGeometry(...keep);
+    return { c, S, R };
+  }
+  function drawNestBase() {
+    if (!nestBase) nestBase = paintNestBase();
+    const k = boardR / nestBase.R, s = nestBase.S * k;
+    ctx.drawImage(nestBase.c, CX - s, CY - s, s * 2, s * 2);
+  }
+
+  // ---------- Night falls: one candle and the moon ----------
+  // Each night starts in the warm evening. As layers are built the room dims, moonlight
+  // comes in through a window you can't see, and the one candle burns down.
+  let dusk = 0, candleOn = 0, melt = 0, shine = 0;
+  function nightTarget() {
+    if (mode !== 'game') return 0.55; // the landing page is already dusk
+    if (state === 'celebrate') return 1;
+    return Math.min(1, (RINGS - playRings + tierWoven / Math.max(1, tierGoal())) / RINGS);
+  }
+  function drawCandle(g, x, y, on, now) {
+    const flick = reduced ? 1 : 0.86 + 0.09 * Math.sin(now / 90) + 0.05 * Math.sin(now / 37);
+    const sway = reduced ? 0 : Math.sin(now / 420) * 1.2 + Math.sin(now / 1300) * 0.7;
+    const cw = 24, hh = 58 * (1 - melt * 0.45), top = y - hh;
+    // an enamel saucer, with a puddle of wax that spreads as it burns
+    g.fillStyle = 'rgba(74, 59, 54, 0.16)'; ell(g, x + 3, y + 6, 28, 8);
+    g.fillStyle = '#B9A8DC'; ell(g, x, y + 3, 25, 7.5);
+    g.fillStyle = '#D6CBEE'; ell(g, x, y + 1.5, 21.5, 5.6);
+    g.fillStyle = '#F4EADA'; ell(g, x + 2, y + 1.5, cw / 2 + 2 + melt * 8, 3 + melt * 1.4);
+    // the pillar
+    const pg = g.createLinearGradient(x - cw / 2, 0, x + cw / 2, 0);
+    pg.addColorStop(0, '#E4D5BE'); pg.addColorStop(0.35, '#FBF4E7'); pg.addColorStop(1, '#D8C6AC');
+    g.fillStyle = pg; g.fillRect(x - cw / 2, top, cw, hh); ell(g, x, y, cw / 2, 3);
+    g.fillStyle = '#FBF5EA'; ell(g, x, top, cw / 2, 3.4);
+    g.fillStyle = '#EDE0CB'; ell(g, x, top + 0.6, cw / 2 - 3.2, 2);
+    // drips, longer as the night goes on
+    const drip = 4 + melt * 16;
+    g.fillStyle = '#FCF7EE';
+    for (const [dx, l, w] of [[-7, drip, 2.2], [2.5, drip * 0.55, 1.7], [8.5, drip * 0.8, 1.5]]) { g.fillRect(x + dx - w, top, w * 2, l); dot(g, x + dx, top + l, w); }
+    g.strokeStyle = '#4A3B36'; g.lineWidth = 1.2; line(g, [x, top - 0.5], [x + 0.5, top - 4.5]);
+    if (on <= 0.01) return;
+    // warm light spilling onto the cloth
+    g.save(); g.globalCompositeOperation = 'lighter';
+    const R = (130 + dusk * 70 + flare * 60) * on, gy = top - 10;
+    const glow = g.createRadialGradient(x, gy, 2, x, gy, R);
+    glow.addColorStop(0, `rgba(255, 186, 104, ${(0.26 + dusk * 0.14 + flare * 0.14) * on * flick})`);
+    glow.addColorStop(0.45, `rgba(255, 186, 104, ${(0.07 + dusk * 0.05) * on * flick})`);
+    glow.addColorStop(1, 'rgba(255, 186, 104, 0)');
+    g.fillStyle = glow; dot(g, x, gy, R);
+    g.restore();
+    // the flame
+    const fh = 13 * flick * on * (1 + flare * 0.35), fx = x + sway * on, fy = top - 4;
+    const fg = g.createRadialGradient(fx, fy - fh * 0.3, 0.5, fx, fy - fh * 0.4, fh);
+    fg.addColorStop(0, 'rgba(255, 255, 240, 1)'); fg.addColorStop(0.35, 'rgba(255, 226, 140, 0.95)'); fg.addColorStop(1, 'rgba(255, 150, 70, 0)');
+    g.fillStyle = fg;
+    g.beginPath(); g.moveTo(fx, fy - fh * 1.25);
+    g.quadraticCurveTo(fx + fh * 0.42, fy - fh * 0.3, fx, fy + 1); g.quadraticCurveTo(fx - fh * 0.42, fy - fh * 0.3, fx, fy - fh * 1.25);
+    g.fill();
+    g.fillStyle = 'rgba(140, 160, 255, 0.45)'; ell(g, fx, fy - 0.5, 1.5, 1.3);
+  }
+  function drawNightRoom(now) {
+    const g = ctx;
+    // the room dims gently; the nest keeps its own warm light
+    const vg = g.createRadialGradient(CX, CY, boardR * 0.8, CX, CY, Math.hypot(W, H) * 0.62);
+    vg.addColorStop(0, `rgba(70, 44, 72, ${dusk * 0.08})`);
+    vg.addColorStop(1, `rgba(46, 32, 70, ${0.04 + dusk * 0.36})`);
+    g.fillStyle = vg; g.fillRect(0, 0, W, H);
+    // moonlight falling across the cloth in four window panes
+    if (dusk > 0.05) {
+      const p0 = [W * 0.58, -30], p1 = [W + 60, -60], p2 = [W + 60, H * 0.38], p3 = [W * 0.2, H * 0.5];
+      const Q = (u, v) => [
+        (1 - v) * ((1 - u) * p0[0] + u * p1[0]) + v * ((1 - u) * p3[0] + u * p2[0]),
+        (1 - v) * ((1 - u) * p0[1] + u * p1[1]) + v * ((1 - u) * p3[1] + u * p2[1]),
+      ];
+      const a = dusk * 0.1, gap = 0.035;
+      for (const [u0, u1] of [[0, 0.5 - gap], [0.5 + gap, 1]]) {
+        for (const [v0, v1] of [[0, 0.5 - gap], [0.5 + gap, 1]]) {
+          const s = Q(u0, v0), e = Q(u1, v1), lg = g.createLinearGradient(s[0], s[1], e[0], e[1]);
+          lg.addColorStop(0, `rgba(214, 222, 255, ${a})`); lg.addColorStop(1, `rgba(214, 222, 255, ${a * 0.35})`);
+          g.fillStyle = lg;
+          g.beginPath(); g.moveTo(...Q(u0, v0)); g.lineTo(...Q(u1, v0)); g.lineTo(...Q(u1, v1)); g.lineTo(...Q(u0, v1)); g.closePath(); g.fill();
+        }
+      }
+    }
+    // one candle, off to the side and partly out of view, like it was just set down there
+    drawCandle(g, Math.max(8, CX - boardR * 1.2 - 18), CY + boardR * 0.98, candleOn, now);
+    // fireflies drifting through the room late in the night
+    if (dusk > 0.45 && !reduced) {
+      const k = Math.min(1, (dusk - 0.45) * 2.5), t = now / 1000;
+      for (let i = 0; i < 7; i++) {
+        const x = ((hash(i, 1) * W + Math.sin(t * 0.3 + i) * 60 + t * (6 + i)) % (W + 40)) - 20;
+        const y = hash(i, 2) * H * 0.9 + Math.sin(t * 0.5 + i * 2) * 30;
+        const tw = 0.5 + 0.5 * Math.sin(t * 2.6 + i * 1.7);
+        g.fillStyle = `rgba(255, 236, 160, ${0.22 * tw * k})`; dot(g, x, y, 8);
+        g.fillStyle = `rgba(255, 246, 205, ${(0.5 + 0.5 * tw) * k})`; dot(g, x, y, 1.8);
+      }
+    }
+  }
+
+  // Layers that change rarely are painted once and reused.
+  let wallC = null, boardC = null;
+  function layerCanvas(c) {
+    if (!c || c.width !== canvas.width || c.height !== canvas.height) { c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height; }
+    const g = c.getContext('2d');
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
+    g.setTransform(DPR, 0, 0, DPR, CX * DPR, CY * DPR);
+    return c;
+  }
+  function renderWalls() {
+    wallC = layerCanvas(wallC);
+    const g = wallC.getContext('2d');
+    for (const w of walls) if (w.t >= 1) drawWall(g, w);
+    wallsDirty = false;
+  }
+  function renderBoard() {
+    boardC = layerCanvas(boardC);
+    drawCells(boardC.getContext('2d'), cellsFromGrid(new Set(recent.map((r) => r.pid))));
+    boardDirty = false;
+  }
+
+  // ---------- Drawing: under the nest (progress, the pincushion, the keepsake tin, tonight's goals) ----------
+  const bandTop = () => boardR + rimBase + boardR * 0.12;
+  const goalsY = () => bandTop() + 74;
+  const sideX = () => Math.min(W / 2 - 46, boardR * 1.12);
+  const pinPos = () => [CX - sideX(), CY + bandTop() + 10];
+  const tinPos = () => [CX + sideX(), CY + bandTop() + 10];
+  function drawKeepsake(g, k, v, x, y, s = 1) {
+    const col = KEEP[k].cols[v];
+    g.save(); g.translate(x, y); g.scale(s, s);
+    if (k === 0) ribbonBow(g, 0, -1, 6, 0, col);
+    else if (k === 1) ladybird(g, 0, 0, 7, -0.4, col);
+    else if (k === 2) {
+      g.fillStyle = col; heartPath(g, 8.5); g.fill();
+      g.strokeStyle = shade(col, -0.25); g.lineWidth = 0.8; heartPath(g, 8.5); g.stroke();
+      g.setLineDash([1.4, 1.4]); g.strokeStyle = k === 2 && v === 1 ? '#C98F8F' : '#FFF4EE'; heartPath(g, 6); g.stroke(); g.setLineDash([]);
+    } else if (k === 3) patch(g, 0, 0, 7.5, 0.15, col);
+    else if (k === 4) sewingButton(g, 0, 0, 8, col);
+    else {
+      g.fillStyle = '#FFFBF4';
+      for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; dot(g, Math.cos(a) * 7, Math.sin(a) * 7, 2.6); }
+      dot(g, 0, 0, 7.2);
+      g.fillStyle = 'rgba(150, 120, 90, 0.35)';
+      for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; dot(g, Math.cos(a) * 7.4, Math.sin(a) * 7.4, 0.8); }
+      ribbonBow(g, 0, 0, 3.8, 0, col);
+    }
+    g.restore();
+  }
+  function drawPin(g, now) {
+    const [x, y] = pinPos(), over = drag && drag.overPin;
+    // a felt tomato pincushion with a couple of pins in it
+    g.fillStyle = 'rgba(74, 59, 54, 0.16)'; ell(g, x + 2, y + 15, 24, 7);
+    const pg = g.createRadialGradient(x - 6, y - 6, 2, x, y, 24);
+    pg.addColorStop(0, '#F2B9B9'); pg.addColorStop(1, '#D98E8E');
+    g.fillStyle = pg; ell(g, x, y + 2, 23, 17);
+    g.strokeStyle = 'rgba(150, 80, 80, 0.35)'; g.lineWidth = 1;
+    for (const k of [-0.5, 0, 0.5]) { g.beginPath(); g.ellipse(x, y + 2, 23 * Math.abs(k) + 0.1, 17, 0, -Math.PI / 2, Math.PI / 2, k < 0); g.stroke(); }
+    for (const [dx, dy, col] of [[-12, -8, P.lavDeep], [11, -9, P.honey], [2, -14, '#8FA8CC']]) {
+      g.strokeStyle = '#B7B2C2'; g.lineWidth = 1; line(g, [x + dx, y + dy], [x + dx * 0.6, y + dy * 0.2]);
+      g.fillStyle = col; dot(g, x + dx, y + dy, 2.4);
+    }
+    g.fillStyle = '#86A571'; for (let k = 0; k < 5; k++) { const a = (k / 5) * TAU - Math.PI / 2; ell(g, x + Math.cos(a) * 4, y - 13 + Math.sin(a) * 2, 4, 1.8, a); }
+    if (over) {
+      g.save(); g.setLineDash([3, 3]); g.strokeStyle = P.lavDeep; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(x, y, 34 + Math.sin(now / 120) * 2, 0, TAU); g.stroke(); g.restore();
+    }
+    if (pinned && !(drag && drag.i === 3)) {
+      const s = reduced ? 1 : Math.min(1, 0.4 + Math.max(0, pinned.pop) * 0.6);
+      g.save(); g.translate(x, y - 4); g.scale(s, s);
+      drawPreview(g, pinned, 0, 0, 74, 44, canPlace(pinned) ? 1 : 0.4, -0.12);
+      g.restore();
+      g.strokeStyle = '#B7B2C2'; g.lineWidth = 1.2; line(g, [x - 4, y - 12], [x + 2, y - 2]);
+      g.fillStyle = '#E0736E'; dot(g, x - 4, y - 12, 3); g.fillStyle = 'rgba(255, 255, 255, 0.7)'; dot(g, x - 5, y - 13, 1);
+    }
+    g.font = `700 13px ${HAND}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = P.inkSoft; g.fillText(pinned ? 'pinned' : 'pin one here', x, y + 29);
+  }
+  function drawTin(g) {
+    const [x, y] = tinPos(), lift = tinBump > 0 ? Math.abs(Math.sin(tinBump * Math.PI * 3)) * tinBump * 4 : 0, r = 22;
+    g.fillStyle = 'rgba(74, 59, 54, 0.16)'; ell(g, x + 2, y + 15, r + 3, 7);
+    const side = g.createLinearGradient(x - r, 0, x + r, 0);
+    side.addColorStop(0, '#7F97BD'); side.addColorStop(0.4, '#A9BCDA'); side.addColorStop(1, '#7389AE');
+    g.fillStyle = side; g.fillRect(x - r, y, r * 2, 11); ell(g, x, y + 11, r, 5.5);
+    g.fillStyle = 'rgba(255, 255, 255, 0.35)'; g.fillRect(x - r, y + 4, r * 2, 1.2);
+    g.fillStyle = '#9CB0D2'; ell(g, x, y - lift, r + 1.5, 8.5);
+    g.fillStyle = '#BCCBE3'; ell(g, x, y - 1.5 - lift, r - 2.5, 6.5);
+    g.save(); g.translate(x, y - 2 - lift); g.scale(1, 0.62);
+    g.fillStyle = P.heart; heartPath(g, 6); g.fill();
+    g.setLineDash([1.2, 1.2]); g.strokeStyle = '#FFF4EE'; g.lineWidth = 0.9; heartPath(g, 4.2); g.stroke(); g.setLineDash([]);
+    g.restore();
+    if (tin.fresh > 0) {
+      g.fillStyle = '#E0736E'; dot(g, x + r - 1, y - 9 - lift, 8);
+      g.fillStyle = '#FFF9F2'; g.font = `700 11px ${HAND}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(tin.fresh > 9 ? '9+' : tin.fresh, x + r - 1, y - 8.5 - lift);
+    }
+    g.font = `700 13px ${HAND}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = P.inkSoft; g.fillText('keepsakes', x, y + 29);
+  }
+  // tonight's goals, as three little stitched tags
+  function drawGoals(g, y) {
+    if (!goals.length) return;
+    g.font = `700 13px ${HAND}`;
+    const items = goals.map((q) => {
+      const txt = GOAL_TEXT[q.k](q) + (q.need > 1 && !q.done ? `  ${q.have}/${q.need}` : '');
+      return { q, txt, w: g.measureText(txt).width + 32 };
+    });
+    const total = items.reduce((a, it) => a + it.w, 0) + (items.length - 1) * 6, k = Math.min(1, (W - 16) / total);
+    g.save(); g.translate(0, y); g.scale(k, k);
+    g.font = `700 11px ${HAND}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = P.inkSoft;
+    g.fillText("tonight's little goals", 0, -21);
+    g.font = `700 13px ${HAND}`; g.textAlign = 'left';
+    let x = -total / 2;
+    for (const { q, txt, w } of items) {
+      const pop = q.done && q.t < 0.5 && !reduced ? 1 + Math.sin((q.t / 0.5) * Math.PI) * 0.12 : 1;
+      g.save(); g.translate(x + w / 2, 0); g.scale(pop, pop); g.translate(-w / 2, 0);
+      g.fillStyle = 'rgba(74, 59, 54, 0.1)'; rrect(g, 1, -10, w, 22, 6); g.fill();
+      g.fillStyle = q.done ? '#ECE3F6' : 'rgba(252, 248, 241, 0.95)'; rrect(g, 0, -11, w, 22, 6); g.fill();
+      g.setLineDash([2, 2]); g.strokeStyle = q.done ? P.lavDeep : 'rgba(201, 143, 143, 0.7)'; g.lineWidth = 1;
+      rrect(g, 2.5, -8.5, w - 5, 17, 4); g.stroke(); g.setLineDash([]);
+      if (q.done) {
+        g.fillStyle = P.lavDeep; dot(g, 12, 0, 5.5);
+        g.strokeStyle = '#FFF9F2'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(9.5, 0); g.lineTo(11.5, 2.2); g.lineTo(15, -2.2); g.stroke();
+      } else {
+        g.setLineDash([1.6, 1.6]); g.strokeStyle = P.inkSoft; g.lineWidth = 1; g.beginPath(); g.arc(12, 0, 5, 0, TAU); g.stroke(); g.setLineDash([]);
+      }
+      g.fillStyle = q.done ? P.lavDeep : P.ink; g.fillText(txt, 22, 1);
+      g.restore();
+      x += w + 6;
+    }
+    g.restore();
+  }
+  // Erwu's wish, in a thought bubble floating above the nest
+  const wishPos = () => [boardR * 0.92, -boardR * 1.0];
+  function drawWish(g, now) {
+    if (!wish || (wish.done && wish.t > 2.4)) return;
+    const [bx, by0] = wishPos(), br = Math.max(25, boardR * 0.17), by = by0 + (reduced ? 0 : Math.sin(now / 900) * 2);
+    const fade = wish.done ? Math.max(0, Math.min(1, (2.4 - wish.t) / 0.6)) : 1;
+    g.save(); g.globalAlpha *= fade;
+    g.fillStyle = 'rgba(255, 251, 245, 0.96)'; g.strokeStyle = 'rgba(74, 59, 54, 0.16)'; g.lineWidth = 1;
+    const sx = coreR * 0.5, sy = -coreR * 0.8, ex = bx - br * 0.8, ey = by + br * 0.7;
+    for (const [t, r] of [[0.35, 2.6], [0.6, 3.6], [0.84, 4.8]]) { dot(g, sx + (ex - sx) * t, sy + (ey - sy) * t, r); g.stroke(); }
+    g.save(); g.shadowColor = 'rgba(74, 59, 54, 0.18)'; g.shadowBlur = 6; g.shadowOffsetY = 2;
+    for (let k = 0; k < 7; k++) { const b = (k / 7) * TAU; dot(g, bx + Math.cos(b) * br * 0.62, by + Math.sin(b) * br * 0.45, br * 0.52); }
+    g.restore();
+    for (let k = 0; k < 7; k++) { const b = (k / 7) * TAU; dot(g, bx + Math.cos(b) * br * 0.62, by + Math.sin(b) * br * 0.45, br * 0.52); }
+    if (wish.done) {
+      const s = 1 + (reduced ? 0 : Math.sin(Math.min(1, wish.t / 0.4) * Math.PI) * 0.3);
+      g.save(); g.translate(bx, by); g.scale(s, s); g.fillStyle = P.heart; heartPath(g, br * 0.42); g.fill(); g.restore();
+    } else {
+      if (!wishPiece) wishPiece = makePiece('arc2', wish.m, 4242);
+      drawPreview(g, wishPiece, bx, by - br * 0.14, br * 1.5, br * 0.62, 1);
+      g.font = `700 ${Math.round(br * 0.5)}px ${HAND}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = P.lavDeep; g.fillText(`${Math.min(wish.need, wishBest())}/${wish.need}`, bx, by + br * 0.46);
+    }
+    g.restore();
+  }
+
+  // ---------- Drawing: the landing page ----------
+  // Erwu already asleep in a nest that isn't finished yet, with a few things lying ready.
+  const STARTERS = [
+    { kind: 'fabric', a: 2.5, d: 0.62, rot: -0.35 },
+    { kind: 'twig', a: -0.62, d: 0.66, rot: 0.55 },
+    { kind: 'clover', a: 0.8, d: 0.63, rot: -0.9 },
+  ];
+  function drawStarter(g, kind, x, y, u, rot, alpha) {
+    g.save(); g.globalAlpha *= alpha; g.translate(x, y); g.rotate(rot); g.scale(u, u);
+    if (kind === 'fabric') { // a folded square of strawberry quilt cotton
+      const body = () => { g.beginPath(); g.moveTo(-19, -16); g.lineTo(19, -16); g.lineTo(19, 6); g.lineTo(8, 17); g.lineTo(-19, 17); g.closePath(); };
+      withShadow(g, 5, 2, () => { body(); g.fillStyle = MATS[T_QUILT].col; g.fill(); });
+      g.save(); body(); g.clip();
+      g.fillStyle = 'rgba(255, 246, 240, 0.55)';
+      for (let yy = -13; yy < 17; yy += 5) for (let xx = -17 + (yy % 2) * 2; xx < 19; xx += 6) dot(g, xx, yy, 0.7);
+      for (const [dx, dy] of [[-10, -7], [6, -4], [-4, 9]]) blossom(g, dx, dy, 3.4);
+      g.restore();
+      g.setLineDash([2.2, 2]); g.strokeStyle = 'rgba(255, 247, 240, 0.9)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(-16, -13); g.lineTo(16, -13); g.lineTo(16, 5); g.moveTo(6, 14); g.lineTo(-16, 14); g.closePath(); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(70, 48, 36, 0.18)'; g.beginPath(); g.moveTo(19, 6); g.lineTo(8, 17); g.lineTo(9, 7); g.closePath(); g.fill();
+      g.fillStyle = shade(MATS[T_QUILT].col, 0.4); g.beginPath(); g.moveTo(19, 6); g.lineTo(8, 17); g.lineTo(8.5, 5.5); g.closePath(); g.fill();
+    } else if (kind === 'twig') { // a little bundle of sticks tied with twine and a ribbon
+      const cols = ['#A57E57', '#8C6844', '#B8916A', '#9A7350'];
+      g.lineCap = 'butt';
+      const sticks = [[-7.5, 5.5, 0.6], [-2.5, 6, -0.4], [2.5, 5, 1], [7, 5.5, -0.8]];
+      withShadow(g, 4, 2, () => { for (const [o, w, sk] of sticks) { g.strokeStyle = '#8C6844'; g.lineWidth = w; line(g, [-27, o], [27, o + sk]); } });
+      sticks.forEach(([o, w, sk], i) => {
+        g.strokeStyle = cols[i]; g.lineWidth = w; line(g, [-27, o], [27, o + sk]);
+        g.strokeStyle = shade(cols[i], 0.3, 0.7); g.lineWidth = 0.8; line(g, [-27, o - w * 0.25], [27, o + sk - w * 0.25]);
+        g.fillStyle = '#E6CFA8'; ell(g, -27, o, 1.2, w * 0.5); ell(g, 27, o + sk, 1.2, w * 0.5);
+      });
+      g.strokeStyle = P.twine; g.lineWidth = 3; line(g, [-10, -11], [-10, 11]);
+      g.strokeStyle = MATS[T_QUILT].col; g.lineWidth = 3.6; line(g, [10, -11], [10, 11]);
+      ribbonBow(g, 10, -9, 5, 0, MATS[T_QUILT].col);
+    } else { // a sprig of clover with a white bloom
+      g.strokeStyle = '#6E8F58'; g.lineWidth = 1.6; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(-22, 8); g.quadraticCurveTo(-2, 2, 20, -8); g.stroke();
+      for (const [x0, y0, r, rot] of [[-12, 4, 6.5, 0.3], [2, -2, 7.5, 1.4], [12, -4, 6, 2.6]]) {
+        g.strokeStyle = '#6E8F58'; g.lineWidth = 0.9; line(g, [x0, y0 + 4], [x0, y0]);
+        g.save(); g.translate(0, 1.2); clover(g, x0, y0 - 4, r, rot, 'rgba(40, 50, 30, 0.22)'); g.restore();
+        clover(g, x0, y0 - 4, r, rot, rot > 2 ? '#96B37E' : MATS[T_CLOVER].col);
+      }
+      blossom(g, 21, -9, 4.4);
+      leaf(g, -16, 6, 12, 2.6, '#9CB48A');
+    }
+    g.restore();
+  }
+  function starPath(g, r) {
+    g.beginPath();
+    for (let k = 0; k < 10; k++) { const b = -Math.PI / 2 + (k * Math.PI) / 5, d = k % 2 ? r * 0.48 : r; g.lineTo(Math.cos(b) * d, Math.sin(b) * d); }
+    g.closePath();
+  }
+  // a little felt star hanging on a thread, moving almost imperceptibly
+  function drawCharm(g, x, len, now, alpha) {
+    const sw = reduced ? 0 : Math.sin(now / 2600) * 0.028 + Math.sin(now / 1700) * 0.01;
+    g.save(); g.globalAlpha *= alpha; g.translate(x, -4); g.rotate(sw);
+    g.strokeStyle = 'rgba(120, 100, 90, 0.5)'; g.lineWidth = 1; line(g, [0, 0], [0, len]);
+    g.fillStyle = '#C9A57A'; dot(g, 0, len - 6, 2.4);
+    g.translate(0, len + 11); g.rotate(-sw * 2);
+    withShadow(g, 5, 2, () => { g.fillStyle = '#F2DDA4'; starPath(g, 12); g.fill(); });
+    g.setLineDash([1.6, 1.6]); g.strokeStyle = '#C79B4E'; g.lineWidth = 0.9; starPath(g, 8.6); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(255, 255, 255, 0.5)'; ell(g, -3, -4, 2.2, 1.2, -0.5);
+    g.restore();
+  }
+  function drawTitleScene(now, k) {
+    const g = ctx, u = boardR / 150;
+    // a soft pool of warm light on the waiting nest
+    const lg = g.createRadialGradient(CX, CY, coreR, CX, CY, boardR * 1.2);
+    lg.addColorStop(0, `rgba(255, 226, 170, ${0.16 * (1 - k)})`); lg.addColorStop(1, 'rgba(255, 226, 170, 0)');
+    g.save(); g.globalCompositeOperation = 'lighter'; g.fillStyle = lg; dot(g, CX, CY, boardR * 1.2); g.restore();
+    const L = titleL, uT = L.R / 150;
+    STARTERS.forEach((s, i) => {
+      const x0 = L.cx + Math.cos(s.a) * L.R * s.d, y0 = L.cy + Math.sin(s.a) * L.R * s.d;
+      const e = easeInOut(Math.min(1, Math.max(0, k * 1.25 - i * 0.1)));
+      const x = x0 + (trayXs[i] - x0) * e, y = y0 + (trayY - y0) * e - Math.sin(e * Math.PI) * 40;
+      drawStarter(g, s.kind, x, y, uT * 1.3 * (1 - e * 0.35), s.rot * (1 - e), 1 - Math.max(0, e - 0.75) * 4);
+    });
+    if (k < 1) drawCharm(g, L.cx + Math.min(W / 2 - 24, L.R * 0.95), Math.max(40, L.cy - L.R * 1.05 - 20), now, 1 - k);
+    return u;
+  }
+
+  // ---------- Drawing: the tray, a gingham-lined basket of three pieces ----------
+  const rrect = (g, x, y, w, h, r) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); };
+  function previewBox(p) {
+    const cells = freeCells(p, -Math.PI / 2, ringMid(1.5));
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const c of cells) for (const r of [c.rin, c.rout]) for (const a of [c.a0, (c.a0 + c.a1) / 2, c.a1]) {
+      const [x, y] = P2(a, r); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+    return { cells, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0 };
+  }
+  // each piece is painted once into its own little canvas and reused every frame
+  function previewImage(p, maxW, maxH) {
+    const key = `${maxW}|${maxH}|${DPR}|${rw.toFixed(2)}`;
+    p.imgs = p.imgs || {};
+    if (p.imgs[key]) return p.imgs[key];
+    const b = previewBox(p), k = Math.min(0.8, maxW / b.w, maxH / b.h), pad = 18;
+    const w = b.w * k + pad * 2, h = b.h * k + pad * 2, c = document.createElement('canvas');
+    c.width = Math.ceil(w * DPR); c.height = Math.ceil(h * DPR);
+    const g = c.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0); g.translate(w / 2, h / 2); g.scale(k, k); g.translate(-b.cx, -b.cy);
+    drawCells(g, b.cells);
+    return (p.imgs[key] = { c, w, h });
+  }
+  function drawPreview(g, p, x, y, maxW, maxH, alpha, rot = 0) {
+    const im = previewImage(p, maxW, maxH);
+    g.save(); g.globalAlpha = alpha; g.translate(x, y); g.rotate(rot);
+    g.drawImage(im.c, -im.w / 2, -im.h / 2, im.w, im.h);
+    g.restore();
+  }
+  function drawTray() {
+    const g = ctx, w = trayGap * 2.9, h = 104, x = trayXs[1] - w / 2, y = trayY - h / 2 + 4;
+    // wicker loop handles at each end
+    g.lineCap = 'round';
+    for (const k of [-1, 1]) {
+      const hx = k < 0 ? x + 6 : x + w - 6, a0 = k < 0 ? Math.PI * 0.5 : -Math.PI * 0.5, a1 = a0 + Math.PI;
+      const arc = () => { g.beginPath(); g.ellipse(hx, trayY + 4, 14, 20, 0, a0, a1); g.stroke(); };
+      g.save(); g.translate(1.5, 4); g.strokeStyle = 'rgba(74, 59, 54, 0.12)'; g.lineWidth = 7; arc(); g.restore();
+      g.strokeStyle = '#B98E5E'; g.lineWidth = 6; arc();
+      g.strokeStyle = '#E3C194'; g.lineWidth = 2; g.setLineDash([3, 3]); arc(); g.setLineDash([]);
+    }
+    g.fillStyle = 'rgba(74, 59, 54, 0.12)'; rrect(g, x + 2, y + 5, w, h, 30); g.fill();
+    g.fillStyle = '#D4A874'; rrect(g, x, y, w, h, 30); g.fill();
+    g.save(); rrect(g, x, y, w, h, 30); g.clip();
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < w / 14 + 1; col++) {
+        g.fillStyle = (row + col) % 2 === 0 ? '#E3C194' : '#B98E5E';
+        rrect(g, x + col * 14 + (row % 2) * 7 - 7, y + row * 13 + 2, 12, 9, 4); g.fill();
+      }
+    }
+    g.restore();
+    // a lavender gingham lining, sitting down inside the basket
+    g.save(); rrect(g, x + 8, y + 8, w - 16, h - 16, 24); g.clip();
+    g.fillStyle = '#F8F2EA'; g.fillRect(x, y, w, h);
+    g.fillStyle = 'rgba(169, 147, 216, 0.2)';
+    for (let yy = y + 8; yy < y + h; yy += 12) g.fillRect(x, yy, w, 6);
+    for (let xx = x + 8; xx < x + w; xx += 12) g.fillRect(xx, y, 6, h);
+    const sh = g.createLinearGradient(0, y + 8, 0, y + h - 8);
+    sh.addColorStop(0, 'rgba(90, 64, 44, 0.2)'); sh.addColorStop(0.3, 'rgba(90, 64, 44, 0)'); sh.addColorStop(1, 'rgba(90, 64, 44, 0.1)');
+    g.fillStyle = sh; g.fillRect(x, y, w, h);
+    g.restore();
+    // where the lining folds over the rim: a scalloped hem with running stitches
+    g.fillStyle = '#EFE6F4';
+    rrect(g, x + 22, y + 2, w - 44, 9, 4); g.fill();
+    for (let xx = x + 28; xx < x + w - 24; xx += 11) { g.beginPath(); g.arc(xx, y + 10, 5.5, 0, Math.PI); g.fill(); }
+    g.setLineDash([3, 2.6]); g.strokeStyle = 'rgba(139, 115, 179, 0.75)'; g.lineWidth = 1;
+    line(g, [x + 26, y + 7], [x + w - 26, y + 7]); g.setLineDash([]);
+    for (let i = 0; i < 3; i++) {
+      const p = tray[i];
+      if (!p || (drag && drag.i === i) || p.pop < 0) continue;
+      const s = reduced ? 1 : Math.min(1, 0.4 + p.pop * 0.6);
+      g.save(); g.translate(trayXs[i], trayY + 6); g.scale(s, s);
+      drawPreview(g, p, 0, 0, trayGap * 0.78, 74, canPlace(p) ? 1 : 0.35, (hash(p.seed, 5) - 0.5) * 0.24);
+      g.restore();
+    }
+  }
+
+  // ---------- Main draw ----------
+  function draw(now) {
+    if (!bg) bg = paintRoom();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bg, 0, 0);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    drawNightRoom(now);
+    drawNestBase();
+    // how far the game's own furniture (basket, labels, goals) has faded in
+    const hud = mode === 'title' ? 0 : mode === 'intro' ? easeInOut(Math.min(1, intro)) : 1;
+
+    if (mode === 'game') {
+      if (wallsDirty) renderWalls();
+      if (boardDirty) renderBoard();
+      // the layers puff up for a moment as a new one settles in
+      const kb = settleT >= 0 && !reduced ? 1 + 0.05 * Math.sin(settleT * 16) * Math.exp(-settleT * 5) : 1;
+      ctx.setTransform(kb, 0, 0, kb, CX * DPR * (1 - kb), CY * DPR * (1 - kb));
+      ctx.globalAlpha = gameFade;
+      ctx.drawImage(wallC, 0, 0);
+      ctx.globalAlpha = 1;
+    }
+    ctx.setTransform(DPR, 0, 0, DPR, CX * DPR, CY * DPR);
+    if (mode === 'game') {
+      // a warm flash of light across the whole nest as a layer settles in
+      if (settleT >= 0 && !reduced) {
+        const fa = 0.34 * Math.exp(-settleT * 4), fg = ctx.createRadialGradient(0, 0, coreR, 0, 0, boardR * 1.35);
+        fg.addColorStop(0, `rgba(255, 232, 180, ${fa})`); fg.addColorStop(0.7, `rgba(255, 232, 180, ${fa * 0.5})`); fg.addColorStop(1, 'rgba(255, 232, 180, 0)');
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = fg; dot(ctx, 0, 0, boardR * 1.35); ctx.restore();
+      }
+      // a light glinting once round the newest layer
+      if (sheen) {
+        const a = -Math.PI / 2 + TAU * easeInOut(Math.min(1, sheen.t)), rin = ringIn(sheen.ring), rout = ringOut(sheen.ring);
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        for (let j = 0; j < 10; j++) { ctx.fillStyle = `rgba(255, 236, 196, ${0.035 * (j + 1)})`; sectorPath(ctx, rin, rout, a - 0.5 + j * 0.05, a - 0.45 + j * 0.05); ctx.fill(); }
+        ctx.restore();
+      }
+      // a layer being built: a needle stitches it round the nest
+      for (const w of walls) {
+        if (w.t >= 1) continue;
+        const e = easeInOut(w.t), a1 = -Math.PI / 2 + TAU * e, rin = ringIn(w.ring), rout = ringOut(w.ring), rm = (rin + rout) / 2;
+        ctx.save(); ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, rout + 14, -Math.PI / 2, a1); ctx.closePath(); ctx.clip();
+        drawWall(ctx, w); ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, (1 - w.t) * 5);
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = P.lavDeep; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, rout - 3, -Math.PI / 2, a1); ctx.stroke(); ctx.setLineDash([]);
+        const [nx, ny] = P2(a1, rm), [ex, ey] = P2(a1 - 0.1, rout - 3);
+        ctx.strokeStyle = P.lavDeep; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(ex, ey); ctx.quadraticCurveTo(...P2(a1 - 0.06, rout + 8), ...P2(a1 - 19.5 / rm, rm)); ctx.stroke();
+        ctx.translate(nx, ny); ctx.rotate(a1 + Math.PI / 2);
+        ctx.shadowColor = 'rgba(70, 48, 36, 0.35)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+        ctx.strokeStyle = '#6F6A7E'; ctx.lineWidth = 4.6; ctx.lineCap = 'round'; line(ctx, [-24, 0], [18, 0]);
+        ctx.shadowColor = 'transparent';
+        ctx.strokeStyle = '#C9C5D3'; ctx.lineWidth = 3; line(ctx, [-23.5, 0], [17.5, 0]);
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1; line(ctx, [-21, -0.8], [14, -0.8]);
+        ctx.fillStyle = '#6F6A7E'; ell(ctx, -19.5, 0, 3.6, 1.1);
+        ctx.restore();
+        if (!reduced && Math.random() < 0.8) sparkle(a1, rm);
+      }
+      drawDecorations(ctx, now);
+      for (const b of blooms) drawBloom(ctx, b);
+
+      // the slots only show while you're placing a piece
+      if (drag) {
+        ctx.save(); ctx.setLineDash([2, 5]); ctx.strokeStyle = 'rgba(140, 108, 76, 0.4)'; ctx.lineWidth = 1;
+        for (let r = 0; r <= playRings; r++) { ctx.beginPath(); ctx.arc(0, 0, r0 + r * rw, 0, TAU); ctx.stroke(); }
+        for (let s = 0; s < SLOTS; s++) { const a = slotAngle(s) - STEP / 2; line(ctx, P2(a, r0), P2(a, ringOut(playRings - 1))); }
+        ctx.restore();
+      }
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = gameFade;
+      ctx.drawImage(boardC, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.setTransform(DPR, 0, 0, DPR, CX * DPR, CY * DPR);
+      // the ring about to become a layer glows while it gathers itself
+      if (gather >= 0 && playRings > 0) {
+        const k = playRings - 1, a = Math.min(1, gather * 4) * (0.22 + 0.12 * Math.sin(now / 80));
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255, 226, 170, ${a})`; sectorPath(ctx, ringIn(k) - 2, ringOut(k) + 2, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+      // freshly placed pieces settle in with a little pop
+      if (recent.length) {
+        const pids = new Set(recent.map((r) => r.pid));
+        const all = cellsFromGrid().filter((c) => pids.has(c.pid));
+        for (const r of recent) {
+          const t = Math.min(1, r.t / 0.3), sc = reduced ? 1 : 0.88 + Math.sin(t * Math.PI) * 0.1 + t * 0.12;
+          ctx.save(); ctx.translate(r.x, r.y); ctx.scale(sc, sc); ctx.translate(-r.x, -r.y);
+          drawCells(ctx, all.filter((c) => c.pid === r.pid));
+          ctx.restore();
+        }
+      }
+      if (drag && drag.snap) {
+        const { r, s } = drag.snap, p = held(drag.i);
+        ctx.fillStyle = 'rgba(255, 232, 180, 0.45)';
+        for (const rr of wouldWeave(p, r, s)) { sectorPath(ctx, ringIn(rr), ringOut(rr), 0, TAU); ctx.fill(); }
+        drawCells(ctx, placedCells(p, r, s), 0.5);
+      }
+      const target = playRings < RINGS ? ringIn(playRings) + 2 : boardR + rimBase * 0.5;
+      for (const f of flyers) {
+        const t = Math.max(0, Math.min(1, (f.t - f.delay) / 0.55)), e = easeInOut(t);
+        const dd = f.from + (target - f.from) * e, a = f.a + e * 0.35;
+        ctx.fillStyle = rgb(hexRgb(MATS[f.m].col), 1 - t * 0.4);
+        dot(ctx, ...P2(a, dd), rw * 0.3 * (1 - t * 0.6));
+      }
+    }
+
+    // Erwu
+    const an = cat.anim, at = an ? an.t / an.dur : 0;
+    const bump = an ? Math.sin(Math.min(1, at) * Math.PI) : 0;
+    drawErwu(ctx, coreR, now, {
+      peek: !!drag, look: drag ? Math.atan2(drag.wy, drag.wx) : null,
+      happy: cat.happy, bounce: cat.bounce, twitch: cat.twitch, earSide: cat.earSide, perk: cat.perk, worried: cat.worried,
+      slow: cat.slow > 0 && cat.slow <= 1.6 && cat.happy <= 0 ? Math.sin((1 - cat.slow / 1.6) * Math.PI) : 0,
+      tailTip: reduced ? 0 : Math.sin(cat.tailTip * Math.PI), curl: dusk,
+      stretch: an && an.type === 'stretch' ? bump : 0,
+      yawn: an && an.type === 'yawn' ? bump : 0,
+      knead: an && an.type === 'knead' ? bump : 0,
+      turn: an && an.type === 'turn' ? TAU * easeInOut(Math.min(1, at)) : 0, turnT: at,
+    });
+    if (hud > 0) {
+      ctx.save(); ctx.globalAlpha = hud;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(74, 59, 54, 0.12)'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(0, 0, coreR + 4, 0, TAU); ctx.stroke();
+      if (energy > 0) {
+        ctx.strokeStyle = energy >= 1 ? rgb(hexRgb(P.honey), 0.75 + 0.25 * Math.sin(now / 250)) : P.lavDeep;
+        ctx.beginPath(); ctx.arc(0, 0, coreR + 4, -Math.PI / 2, -Math.PI / 2 + TAU * energy); ctx.stroke();
+      }
+      drawWish(ctx, now);
+      ctx.restore();
+    }
+    if (cat.dream > 0) drawDream(ctx, now);
+
+    for (const p of particles) {
+      const a = Math.max(0, Math.min(1, p.life * 1.5));
+      if (p.type === 'heart') {
+        ctx.save(); ctx.translate(p.x + Math.sin(p.wob + p.life * 6) * 4, p.y); ctx.fillStyle = rgb(hexRgb(P.heart), a);
+        heartPath(ctx, p.r); ctx.fill(); ctx.restore();
+      } else if (p.type === 'spark') {
+        ctx.fillStyle = `rgba(255, 238, 190, ${a})`; dot(ctx, p.x, p.y, p.r);
+      } else if (p.type === 'confetti') {
+        ctx.save(); ctx.globalAlpha = Math.min(1, p.life * 2.5); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.scale(1, 0.3 + 0.7 * Math.abs(Math.cos(p.rot * 1.3))); // fluttering as it turns over
+        if (p.shape === 'petal') { ctx.fillStyle = p.col; ell(ctx, 0, 0, p.r, p.r * 0.55); ctx.fillStyle = 'rgba(255, 255, 255, 0.35)'; ell(ctx, -p.r * 0.2, -p.r * 0.1, p.r * 0.45, p.r * 0.2); }
+        else if (p.shape === 'heart') { ctx.fillStyle = P.heart; heartPath(ctx, p.r); ctx.fill(); }
+        else if (p.shape === 'button') sewingButton(ctx, 0, 0, p.r * 0.9, p.col);
+        else if (p.shape === 'leaf') leaf(ctx, -p.r, 0, p.r * 2.3, 0, '#86A571');
+        else blossom(ctx, 0, 0, p.r);
+        ctx.restore();
+      } else if (p.type === 'ring') {
+        ctx.strokeStyle = `rgba(${p.col}, ${a * 0.95})`; ctx.lineWidth = 2 + 12 * p.life;
+        ctx.beginPath(); ctx.arc(0, 0, p.r, 0, TAU); ctx.stroke();
+      } else if (p.type === 'speck') {
+        const f = a * Math.min(1, (1 - p.life) * 5);
+        ctx.fillStyle = `rgba(255, 234, 170, ${f * 0.28})`; dot(ctx, p.x, p.y, p.r * 4);
+        ctx.fillStyle = `rgba(255, 249, 222, ${f})`; dot(ctx, p.x, p.y, p.r);
+      } else if (p.type === 'keep') { // a treasure on its way to the keepsake tin
+        const [tx, ty] = tinPos(), e = easeInOut(Math.min(1, p.t));
+        const x = p.sx + (tx - CX - p.sx) * e, y = p.sy + (ty - CY - 6 - p.sy) * e - Math.sin(e * Math.PI) * boardR * 0.35;
+        drawKeepsake(ctx, p.k, p.v, x, y, 1.5 - e * 0.6);
+      } else if (p.type === 'z') {
+        ctx.fillStyle = `rgba(74, 59, 54, ${a * 0.5})`; ctx.font = `700 ${Math.round(p.r)}px ${HAND}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('z', p.x, p.y);
+      }
+    }
+
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    for (const f of floats) {
+      const a = Math.min(1, f.life * 1.8);
+      ctx.font = `700 ${Math.round(boardR * 0.13 * f.scale)}px ${HAND}`;
+      ctx.lineWidth = Math.max(4, boardR * 0.035); ctx.strokeStyle = `rgba(251, 244, 236, ${a * 0.95})`;
+      ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillStyle = rgb(hexRgb(f.col), a); ctx.fillText(f.text, f.x, f.y);
+    }
+
+    if (hud > 0) {
+      ctx.save(); ctx.globalAlpha = hud;
+      // progress towards the next layer: one sewing button per ring, sewn on as you go
+      const y = bandTop();
+      if (state === 'play' || state === 'building' || mode === 'intro') {
+        const goal = tierGoal();
+        ctx.font = `700 ${Math.round(Math.max(15, boardR * 0.1))}px ${HAND}`;
+        const label = playRings === 1 ? 'Last layer: the lining' : 'Next layer of the nest';
+        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(251, 244, 236, 0.85)'; ctx.strokeText(label, 0, y + 2);
+        ctx.fillStyle = P.ink; ctx.fillText(label, 0, y + 2);
+        for (let i = 0; i < goal; i++) {
+          const x = (i - (goal - 1) / 2) * 22, filled = i < tierWoven;
+          if (filled) {
+            sewingButton(ctx, x, y + 24, 8, MATS[T_KNIT].col);
+            ctx.strokeStyle = '#FBF4EC'; ctx.lineWidth = 1.2;
+            line(ctx, [x - 2, y + 22], [x + 2, y + 26]); line(ctx, [x + 2, y + 22], [x - 2, y + 26]);
+          } else {
+            ctx.fillStyle = 'rgba(251, 244, 236, 0.75)'; dot(ctx, x, y + 24, 8);
+            ctx.setLineDash([2, 2.4]); ctx.strokeStyle = 'rgba(139, 115, 179, 0.8)'; ctx.lineWidth = 1.3;
+            ctx.beginPath(); ctx.arc(x, y + 24, 8, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+          }
+        }
+      }
+      drawGoals(ctx, goalsY());
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      drawPin(ctx, now);
+      drawTin(ctx);
+      drawTray();
+      ctx.restore();
+    }
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    if (mode !== 'game') drawTitleScene(now, hud);
+
+    // the piece in your hand, turned to match where it is over the nest
+    if (drag) {
+      const p = held(drag.i), dd = Math.hypot(drag.wx, drag.wy), a = Math.atan2(drag.wy, drag.wx);
+      ctx.save(); ctx.translate(CX, CY);
+      if (drag.overPin) {
+        const [px, py] = pinPos();
+        drawPreview(ctx, p, px - CX, py - CY - 4, 74, 44, 0.9, -0.12);
+      } else if (dd < boardR * 1.25) {
+        const snapD = drag.snap ? placementCenter(p, drag.snap.r, drag.snap.s).d : Math.max(r0 + rw / 2, Math.min(boardR - rw / 2, dd));
+        ctx.translate(drag.wx - Math.cos(a) * snapD, drag.wy - Math.sin(a) * snapD);
+        drawCells(ctx, freeCells(p, a, snapD), 0.95);
+      } else {
+        drawPreview(ctx, p, drag.wx, drag.wy, trayGap, 90, 0.95);
+      }
+      ctx.restore();
+    }
+  }
+
+  // ---------- Update ----------
+  function update(dt) {
+    if (mode === 'intro') {
+      intro += dt / 1.1;
+      if (intro >= 1) finishIntro();
+      applyMode();
+    } else if (mode === 'game') gameFade = Math.min(1, gameFade + dt * 2.5);
+    // a few motes of dust drifting up through the candlelight on the landing page
+    if (mode === 'title' && !reduced && Math.random() < dt * 1.6) {
+      particles.push({ type: 'speck', x: (Math.random() - 0.5) * boardR * 2.6, y: boardR * (0.2 + Math.random() * 0.9), vx: (Math.random() - 0.5) * 5, vy: -(4 + Math.random() * 7), r: 0.8 + Math.random() * 1.1, life: 1, decay: 0.14 + Math.random() * 0.1 });
+    }
+    for (const t of tray) if (t) t.pop = Math.min(1, t.pop + dt * 4);
+    if (pinned) pinned.pop = Math.min(1, pinned.pop + dt * 4);
+    for (const g of goals) g.t += dt;
+    if (wish) wish.t += dt;
+    tinBump = Math.max(0, tinBump - dt * 1.6);
+    dusk += (nightTarget() - dusk) * Math.min(1, dt * 0.7);
+    if (mode === 'game') melt = Math.max(melt, dusk);
+    candleOn += (1 - candleOn) * Math.min(1, dt * 1.6);
+    shine += ((state === 'celebrate' ? 1 : 0) - shine) * Math.min(1, dt * 2);
+    for (const b of blooms) b.t += dt;
+    if (gather >= 0) gather += dt;
+    if (settleT >= 0) { settleT += dt; if (settleT > 0.9) settleT = -1; }
+    if (sheen) { sheen.t += dt / 0.9; if (sheen.t >= 1) sheen = null; }
+    flare = Math.max(0, flare - dt * 0.8);
+    for (const w of walls) {
+      if (w.t >= 1) continue;
+      const before = easeInOut(w.t);
+      w.t = Math.min(1, w.t + dt / 1.3);
+      // a rising note each time the needle passes a quarter of the way round
+      const q0 = Math.floor(before * 4), q1 = Math.floor(easeInOut(w.t) * 4);
+      if (q1 > q0 && q1 < 4) tone(noteFreq(5 + q1 * 2), 0.03, 0.3);
+      if (w.t >= 1) { wallsDirty = true; layerSettled(w); }
+    }
+    for (const r of recent) r.t += dt;
+    if (recent.some((r) => r.t > 0.3)) { recent = recent.filter((r) => r.t <= 0.3); boardDirty = true; }
+    for (const f of flyers) f.t += dt;
+    flyers = flyers.filter((f) => f.t < f.delay + 0.6);
+    for (const p of particles) { p.x += p.vx * dt; p.y += p.vy * dt; if (p.type === 'spark') { p.vx *= 0.92; p.vy *= 0.92; } if (p.type === 'speck') p.x += Math.sin(p.life * 9 + p.r * 5) * dt * 6;
+      if (p.type === 'confetti') { const k = Math.max(0, 1 - dt * 2.2); p.vx *= k; p.vy = p.vy * k + boardR * 1.5 * dt; p.rot += p.vr * dt; p.x += Math.sin(p.life * 11 + p.r) * dt * 22; }
+      if (p.type === 'ring') p.r += p.vr * dt;
+      if (p.type === 'keep') { p.t += dt / 0.9; if (p.t >= 1) { p.life = 0; tinBump = 1; tone(noteFreq(14), 0.03, 0.25); } }
+      p.life -= dt * p.decay; }
+    particles = particles.filter((p) => p.life > 0);
+    for (const f of floats) { f.life -= dt * 0.7; f.y -= dt * 18; }
+    floats = floats.filter((f) => f.life > 0);
+
+    cat.happy = Math.max(0, cat.happy - dt);
+    cat.bounce = Math.max(0, cat.bounce - dt * 3);
+    cat.twitch = Math.max(0, cat.twitch - dt * 5);
+    const near = drag && Math.hypot(drag.wx, drag.wy) < ringOut(1);
+    cat.perk += ((near ? 1 : 0) - cat.perk) * Math.min(1, dt * 8);
+    if (cat.anim) { cat.anim.t += dt; if (cat.anim.t >= cat.anim.dur) cat.anim = cat.queue.shift() || null; }
+    cat.nextTwitch -= dt;
+    if (cat.nextTwitch <= 0) { cat.twitch = 1; cat.earSide = Math.random() < 0.5 ? -1 : 1; cat.nextTwitch = 3 + Math.random() * 5; }
+    cat.slow = Math.max(0, cat.slow - dt);
+    cat.tailTip = Math.max(0, cat.tailTip - dt * 1.2);
+    cat.nextTail -= dt;
+    if (cat.nextTail <= 0) { cat.tailTip = 1; cat.nextTail = 4 + Math.random() * 6; }
+    // left alone, she drifts off and dreams
+    if (!drag && state === 'play' && mode === 'game') cat.idle += dt; else cat.idle = 0;
+    if (cat.dream > 0) cat.dream = Math.max(0, cat.dream - dt);
+    else if (cat.idle > 12 && !reduced) { cat.dream = 4.5; cat.dreamIcon++; cat.idle = 0; }
+    cat.z -= dt;
+    if (cat.z <= 0 && !drag && state === 'play' && mode === 'game' && cat.dream <= 0 && !reduced) {
+      cat.z = 3.2;
+      particles.push({ type: 'z', x: -coreR * 0.1, y: -coreR * 0.7, vx: coreR * 0.25, vy: -coreR * 0.5, r: coreR * 0.32, life: 1, decay: 0.45 });
+    }
+
+    if (shownScore !== score) {
+      shownScore += Math.max(1, Math.ceil((score - shownScore) * Math.min(1, dt * 9)));
+      if (shownScore > score) shownScore = score;
+      el.score.textContent = shownScore;
+      if (shownScore === score) { el.scoreTag.classList.remove('bump'); void el.scoreTag.offsetWidth; el.scoreTag.classList.add('bump'); }
+    }
+  }
+
+  // ---------- Input ----------
+  // Drag from the tray. The piece rides a little above your thumb and travels a bit
+  // further than your thumb does, so the whole nest is in easy reach.
+  const LIFT = 64, GAIN = 1.3;
+  function dragTo(e) {
+    const x = drag.sx + (e.clientX - drag.sx) * GAIN, y = drag.sy + (e.clientY - drag.sy) * GAIN - LIFT;
+    drag.wx = x - CX; drag.wy = y - CY;
+    const prev = drag.snap, [px, py] = pinPos();
+    // a piece from the basket can be dropped on the pincushion to keep it for later
+    drag.overPin = drag.i !== 3 && Math.hypot(x - px, y - py) < 46;
+    drag.snap = drag.overPin ? null : snap(held(drag.i), drag.wx, drag.wy);
+    if (drag.snap && (!prev || prev.r !== drag.snap.r || prev.s !== drag.snap.s)) rustle(0.02);
+  }
+  window.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button') || mode !== 'game' || !el.over.hidden || !el.tin.hidden) return;
+    const [tx, ty] = tinPos(), [px, py] = pinPos(), [wx, wy] = wishPos();
+    if (Math.hypot(e.clientX - tx, e.clientY - ty) < 38) { openTin(); return; }
+    if (state !== 'play') return;
+    cat.idle = 0;
+    if (Math.hypot(e.clientX - CX, e.clientY - CY) < coreR + 8) { fetchPieces(); return; }
+    if (wish && !wish.done && Math.hypot(e.clientX - CX - wx, e.clientY - CY - wy) < boardR * 0.2) { sayWish(); return; }
+    let pick = -1, bestD = trayGap * 0.55;
+    if (pinned && Math.hypot(e.clientX - px, e.clientY - py) < 42) pick = 3;
+    for (let i = 0; i < 3 && pick !== 3; i++) {
+      if (!tray[i]) continue;
+      const d = Math.hypot(e.clientX - trayXs[i], (e.clientY - trayY) * 0.8);
+      if (d < bestD) { bestD = d; pick = i; }
+    }
+    if (pick < 0) return;
+    drag = { i: pick, sx: e.clientX, sy: e.clientY, id: e.pointerId, wx: 0, wy: 0, snap: null };
+    cat.dream = 0;
+    dragTo(e);
+    rustle(0.03);
+  });
+  window.addEventListener('pointermove', (e) => { if (drag && e.pointerId === drag.id) dragTo(e); });
+  const release = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag;
+    drag = null;
+    if (e.type === 'pointerup' && d.overPin && state === 'play') pinPiece(d.i);
+    else if (e.type === 'pointerup' && d.snap && state === 'play') place(d.i, d.snap.r, d.snap.s);
+    if (ringsTotal > 0 && el.hint.textContent.startsWith('Drag')) setHint('');
+  };
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
+
+  el.sound.addEventListener('click', () => { setSound(!soundOn); if (soundOn) tone(noteFreq(7), 0.04); });
+  el.again.addEventListener('click', () => newGame());
+  // the keepsake tin, opened from the table or from the landing page
+  function openTin() {
+    const c = el.tinCanvas, g = c.getContext('2d'), k = c.width / 300;
+    g.setTransform(k, 0, 0, k, 0, 0); g.clearRect(0, 0, 300, 324);
+    g.fillStyle = '#E4DAF0'; rrect(g, 0, 0, 300, 324, 14); g.fill();
+    g.setLineDash([3, 3]); g.strokeStyle = 'rgba(139, 115, 179, 0.6)'; g.lineWidth = 1.2; rrect(g, 6, 6, 288, 312, 10); g.stroke(); g.setLineDash([]);
+    KEEP.forEach((K, i) => {
+      const y = 32 + i * 52, done = setDone(i);
+      if (done) { g.fillStyle = 'rgba(255, 250, 244, 0.6)'; rrect(g, 12, y - 22, 276, 44, 10); g.fill(); }
+      g.font = `700 16px ${HAND}`; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = P.ink;
+      g.fillText(K.name, 20, y - (done ? 6 : 0));
+      if (done) { g.font = `700 11px ${HAND}`; g.fillStyle = P.lavDeep; g.fillText('a whole set ✓', 20, y + 10); }
+      for (let v = 0; v < 4; v++) {
+        const x = 130 + v * 44, n = tin.n[i * 4 + v];
+        g.fillStyle = 'rgba(120, 96, 150, 0.12)'; dot(g, x, y + 1, 17);
+        g.fillStyle = '#EFE8F7'; dot(g, x, y, 16);
+        if (n) {
+          drawKeepsake(g, i, v, x, y, 1.35);
+          if (n > 1) { g.font = `700 11px ${HAND}`; g.textAlign = 'center'; g.fillStyle = P.inkSoft; g.fillText(`×${n}`, x + 14, y + 15); }
+        } else {
+          g.setLineDash([2, 2]); g.strokeStyle = 'rgba(139, 115, 179, 0.55)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, 11, 0, TAU); g.stroke(); g.setLineDash([]);
+        }
+      }
+    });
+    const found = tin.n.filter(Boolean).length;
+    el.tinCount.textContent = found ? `${found} of 24 keepsakes found` : 'Treasures you place in the nest are kept here';
+    tin.fresh = 0; store.set('tin', tin);
+    el.tin.hidden = false;
+    el.tinClose.focus({ preventScroll: true });
+  }
+  el.tinClose.addEventListener('click', () => { el.tin.hidden = true; });
+  el.tinLink.addEventListener('click', openTin);
+  // Start building: the story steps aside, the nest settles into place and the three
+  // things lying in it are gathered into the basket as the first pieces
+  function beginGame() {
+    if (mode !== 'title') return;
+    if (soundOn && audio && audio.state === 'suspended') audio.resume();
+    const run = store.get('run', null);
+    if (run && (run.v === 4 || run.v === 5) && run.grid) { try { restoreRun(run); } catch { newGame(true); } } else newGame(true);
+    tray.forEach((t, i) => t && (t.pop = -2.4 - i * 0.4));
+    if (pinned) pinned.pop = -2.4;
+    mode = 'intro'; intro = 0; gameFade = 0;
+    el.title.classList.add('leaving'); el.app.classList.remove('away');
+    setTimeout(() => { el.title.hidden = true; }, 650);
+    tone(noteFreq(7), 0.03, 0.5); tone(noteFreq(11), 0.025, 0.6, 0.15);
+  }
+  function finishIntro() {
+    mode = 'game'; intro = 1;
+    boardDirty = wallsDirty = true;
+    showToast(`Night ${night} · ${theme().note.toLowerCase()}`, theme().name);
+    if (!store.get('hinted', false)) { store.set('hinted', true); setHint('Drag pieces in. Fill a whole ring to weave it.'); }
+    else sayWish();
+    saveRun(); updateHud();
+  }
+  el.begin.addEventListener('click', beginGame);
+  let restartArmed = false, restartTimer = 0;
+  el.restart.addEventListener('click', () => {
+    if (restartArmed) { restartArmed = false; clearTimeout(restartTimer); el.restart.classList.remove('armed'); setHint(''); newGame(); sayWish(); return; }
+    restartArmed = true; el.restart.classList.add('armed');
+    setHint('Tap again to start a new nest');
+    restartTimer = setTimeout(() => { restartArmed = false; el.restart.classList.remove('armed'); setHint(''); }, 2600);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) saveRun(); });
+
+  // test hook for automated play-throughs
+  if (location.hash === '#bot') {
+    window.__nest = {
+      view: () => ({ grid: grid.map((row) => row.map((c) => (c ? 1 : 0))), tray: [...tray, pinned].map((t) => t && t.cells), playRings, night, state, energy, walls: walls.map((w) => w.style.name), decor: decor.map((d) => d.kind), goals: goals.map((g) => `${GOAL_TEXT[g.k](g)} ${g.have}/${g.need}${g.done ? ' done' : ''}`), wish: wish && `${MATS[wish.m].name} ${wish.need}${wish.done ? ' granted' : ''}`, pinned: !!pinned, tin: tin.n.reduce((a, b) => a + b, 0) }),
+      pin: (i) => { if (state === 'play' && tray[i]) { pinPiece(i); return true; } return false; },
+      tin: () => openTin(),
+      place: (i, r, s) => { if (state === 'play' && held(i) && fits(held(i), r, s)) { place(i, r, s); return true; } return false; },
+      fetch: () => fetchPieces(),
+      night: (n) => { night = n; bg = null; nestBase = null; makeGoals(); newWish(false); dealTray(); updateHud(); },
+      // how much of each built wall leaves the straw showing, sampled round three circles
+      coverage: () => walls.map((w) => {
+        const c = document.createElement('canvas'), R = Math.ceil(boardR + 40); c.width = c.height = R * 2;
+        const g = c.getContext('2d'); g.translate(R, R); drawWall(g, w);
+        const d = g.getImageData(0, 0, R * 2, R * 2).data, out = {};
+        for (const [name, rr] of [['in', ringIn(w.ring) + 2], ['mid', ringMid(w.ring)], ['out', ringOut(w.ring) - 2]]) {
+          const holes = [];
+          for (let i = 0; i < 720; i++) { const a = (i / 720) * TAU, x = Math.round(R + Math.cos(a) * rr), y = Math.round(R + Math.sin(a) * rr); if (d[(y * R * 2 + x) * 4 + 3] < 40) holes.push(i / 2); }
+          out[name] = holes;
+        }
+        return { ring: w.ring, cells: w.cells.map((c) => MATS[c[0]].name[0] + c[1]).join(' '), ...out };
+      }),
+    };
+  }
+
+  // ---------- Loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(1 / 30, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw(now);
+    requestAnimationFrame(frame);
+  }
+  function start() {
+    layout();
+    new ResizeObserver(layout).observe(el.stage);
+    window.addEventListener('resize', layout);
+    setSound(soundOn);
+    setHint('');
+    const run = store.get('run', null), saved = run && (run.v === 4 || run.v === 5) && run.grid;
+    if (saved) { night = run.night; el.resume.textContent = `Your nest from night ${run.night} is waiting`; }
+    if (tin.n.some(Boolean)) el.tinLink.hidden = false;
+    if (location.hash.startsWith('#bot') && location.hash !== '#bot-title') { // tests go straight to the game
+      mode = 'game'; gameFade = 1; applyMode();
+      el.title.hidden = true; el.app.classList.remove('away');
+      if (saved) { try { restoreRun(run); } catch { newGame(); } } else newGame();
+    } else {
+      grid = emptyGrid(); // an empty nest behind the landing page; the saved run waits until Start
+      el.begin.focus({ preventScroll: true });
+    }
+    requestAnimationFrame(frame);
+  }
+  start();
+})();
+</script>
+</body>
+</html>

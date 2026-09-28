@@ -20,6 +20,8 @@ Open the GitHub Pages site on your iPhone in Safari, tap Share, then **Add to Ho
 ## Files
 
 - `index.html`: the whole game (HTML, CSS and canvas JavaScript, no build step)
+- `assets/erwu.webp`, `erwu-art.js`: Erwu's painted poses, shared with Bloom. Refresh them with `node tools/sync-erwu.cjs ../bloom`. If the image can't load, a drawn Erwu stands in.
+- `.scratch/art-direction/`: how Nest's evening look relates to Bloom's afternoon garden, and the sheets still to generate
 - `manifest.webmanifest`, `icons/`: Home Screen install
 - `.nojekyll`: tells GitHub Pages to serve the files as they are
 

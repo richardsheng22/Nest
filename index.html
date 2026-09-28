@@ -8,27 +8,31 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nest">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#EFE2D6">
+<meta name="theme-color" content="#E8D9CC">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Figtree:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Figtree:wght@400..700&family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&display=swap">
 <style>
-  /* A lamp-lit evening: oat blanket, straw nest, wool and felt. One light look. */
+  /* A lamp-lit evening: oat blanket, straw nest, wool and felt. The same storybook as Bloom
+     (its afternoon garden), a few hours later and indoors: warmer, dimmer, dusk at the edges.
+     Erwu, the outline colour and the display serif are shared with Bloom; see
+     .scratch/art-direction/README.md. */
   :root {
-    --ground: #EFE2D6;
+    --ground: #E8D9CC;
     --card: #FBF4EC;
     --ink: #4A3B36;
-    --ink-soft: #8C7A72;
-    --lav: #B49CDA;
-    --lav-deep: #8B73B3;
+    --ink-soft: #85736B;
+    --lav: #B3A1CF;
+    --lav-deep: #7E6179;
     --thread: #C98F8F;
     --chip: rgba(255, 249, 243, 0.78);
     --hairline: rgba(74, 59, 54, 0.12);
     --hand: "Gaegu", "Chalkboard SE", "Comic Sans MS", ui-rounded, cursive;
     --font: "Figtree", ui-rounded, system-ui, sans-serif;
+    --serif: "Fraunces", "Iowan Old Style", "Palatino", Georgia, serif;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --pinked: linear-gradient(#000 0 0) center / calc(100% - 12px) 100% no-repeat,
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10' preserveAspectRatio='none'%3E%3Cpath d='M6 0V10L0 5Z'/%3E%3C/svg%3E") left top / 6px 10px repeat-y,
@@ -98,10 +102,12 @@
   .score { padding: 9px 26px 6px; text-align: center; min-width: 92px; }
   .score b {
     display: block;
-    font-family: var(--hand);
-    font-size: 46px;
-    font-weight: 700;
-    line-height: 0.9;
+    font-family: var(--serif);
+    font-variation-settings: "SOFT" 100, "opsz" 144;
+    font-size: 44px;
+    font-weight: 460;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
     font-variant-numeric: tabular-nums;
   }
   .score span { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
@@ -140,7 +146,7 @@
     background: #E6D9CA;
     box-shadow: 0 0 0 2px #C4A274;
   }
-  .kraft b { display: block; font-family: var(--hand); font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1; margin-top: 2px; }
+  .kraft b { display: block; font-family: var(--serif); font-variation-settings: "SOFT" 100, "opsz" 48; font-size: 22px; font-weight: 500; color: var(--ink); line-height: 1; margin-top: 2px; }
   .twine { position: absolute; left: 0; bottom: 50%; width: 30px; height: 70px; overflow: visible; pointer-events: none; }
   .tools { display: flex; justify-content: flex-end; gap: 8px; padding-top: 8px; }
   /* big fabric-covered sewing buttons */
@@ -171,7 +177,7 @@
     position: absolute;
     inset: 8px;
     border-radius: 50%;
-    border: 1px dashed rgba(139, 115, 179, 0.45);
+    border: 1px dashed rgba(126, 97, 121, 0.4);
   }
   .icon-btn:active { transform: scale(0.93); }
   .icon-btn[aria-pressed="true"], .icon-btn.armed {
@@ -230,7 +236,7 @@
     background:
       repeating-linear-gradient(0deg, rgba(150, 118, 92, 0.06) 0 1px, transparent 1px 3px) padding-box,
       linear-gradient(#F8F0E4, #F8F0E4) padding-box,
-      repeating-linear-gradient(60deg, #8B73B3 0 1.6px, #B49CDA 1.6px 3.2px) border-box;
+      repeating-linear-gradient(60deg, #7E6179 0 1.6px, #B3A1CF 1.6px 3.2px) border-box;
     box-shadow: 0 3px 0 rgba(74, 59, 54, 0.08), 0 8px 16px rgba(74, 59, 54, 0.14);
   }
   #toast::after {
@@ -246,7 +252,7 @@
   #toast .bloom { position: absolute; width: 26px; height: 26px; }
   #toast .b1 { left: -12px; top: -12px; }
   #toast .b2 { right: -10px; bottom: -12px; }
-  #toast b { display: block; font-family: var(--hand); font-size: 26px; font-weight: 700; line-height: 1; }
+  #toast b { display: block; font-family: var(--serif); font-variation-settings: "SOFT" 100, "opsz" 48; font-size: 24px; font-weight: 500; line-height: 1; }
 
   #over, .sheet {
     position: fixed;
@@ -304,8 +310,8 @@
     -webkit-mask: var(--pinked);
     mask: var(--pinked);
   }
-  .card h2 { margin: 12px 0 0; font-family: var(--hand); font-size: 34px; font-weight: 700; line-height: 1; }
-  .card .big { font-family: var(--hand); font-size: 58px; font-weight: 700; line-height: 0.95; margin-top: 4px; }
+  .card h2 { margin: 12px 0 0; font-family: var(--serif); font-variation-settings: "SOFT" 100, "opsz" 72; font-size: 30px; font-weight: 500; line-height: 1.05; }
+  .card .big { font-family: var(--serif); font-variation-settings: "SOFT" 100, "opsz" 144; font-size: 56px; font-weight: 460; letter-spacing: -0.02em; line-height: 0.95; margin-top: 4px; }
   .card p { margin: 2px 0 0; color: #6B5443; font-size: 15px; }
   .card .newbest { color: var(--lav-deep); font-weight: 600; }
   .gallery { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
@@ -352,7 +358,7 @@
   }
   #title.leaving { opacity: 0; }
   #title .once { margin: 0; font-family: var(--hand); font-size: 19px; color: #7E6A63; }
-  #title h1 { margin: 2px 0 0; font-family: var(--hand); font-size: 52px; font-weight: 700; line-height: 1; color: var(--ink); }
+  #title h1 { margin: 2px 0 0; font-family: var(--serif); font-variation-settings: "SOFT" 100, "opsz" 144; font-size: 50px; font-weight: 500; letter-spacing: -0.01em; line-height: 1; color: var(--ink); }
   #title .story { display: flex; flex-direction: column; align-items: center; max-width: 340px; }
   #title .story p { margin: 0; font-family: var(--hand); font-size: 23px; line-height: 1.2; color: var(--ink); text-wrap: balance; }
   #title .story .soft { color: #7E6A63; font-size: 20px; margin-top: 2px; }
@@ -369,7 +375,7 @@
     text-shadow: none;
     outline: 1.5px dashed rgba(255, 249, 242, 0.6);
     outline-offset: -6px;
-    box-shadow: 0 2px 0 rgba(74, 59, 54, 0.18), 0 10px 22px rgba(90, 70, 120, 0.25);
+    box-shadow: 0 2px 0 rgba(74, 59, 54, 0.18), 0 10px 22px rgba(80, 56, 84, 0.25);
     cursor: pointer;
     touch-action: manipulation;
   }
@@ -470,6 +476,7 @@
 
 <label class="haptic" id="haptic" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
 
+<script src="erwu-art.js"></script>
 <script>
 (() => {
   'use strict';
@@ -497,10 +504,10 @@
   const HAND = '"Gaegu", "Chalkboard SE", ui-rounded, cursive';
 
   const P = {
-    ground: '#EFE2D6', ink: '#4A3B36', inkSoft: '#8C7A72', card: '#FBF4EC',
+    ground: '#E8D9CC', ink: '#4A3B36', inkSoft: '#85736B', card: '#FBF4EC',
     straw: '#E9D6BA', twig: '#9C7550', twigDark: '#7A5A3C', twigLight: '#B8916A', twine: '#EADCBC',
-    lav: '#B49CDA', lavDeep: '#8B73B3', honey: '#E6B458', heart: '#E7939F', rose: '#E6A0A0', sage: '#A7BD99',
-    fur: '#7C7A8B', furLight: '#9A97A8', ear: '#B9A2AE', eye: '#CFA53B', pupil: '#29242F', nose: '#4A4555',
+    lav: '#B3A1CF', lavDeep: '#7E6179', honey: '#E6B458', heart: '#E7939F', rose: '#E6A0A0', sage: '#A7BD99',
+    fur: '#6E6C78', furLight: '#928E9A', ear: '#B9A2AE', eye: '#D9A13E', pupil: '#29242F', nose: '#4A4555',
   };
   // Nest materials, gathered from around the house and garden. Twigs are bundles that
   // run outward from Erwu; everything else curves round her.
@@ -531,6 +538,7 @@
   const hexRgb = (h) => { h = h.replace('#', ''); const n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const INK = hexRgb(P.ink), WHITE = [255, 255, 255];
+  const PAGE = '#F3ECDD'; // the paper both games are painted on (Bloom's --ground)
   function shade(hex, amt, a = 1) {
     const c = hexRgb(hex), to = amt > 0 ? WHITE : INK, t = Math.abs(amt);
     return rgb(c.map((v, i) => Math.round(v + (to[i] - v) * t)), a);
@@ -574,7 +582,7 @@
     trayY = tr.top + tr.height / 2;
     trayGap = Math.min(tr.width / 3, 150);
     trayXs = [-1, 0, 1].map((k) => tr.left + tr.width / 2 + k * trayGap);
-    bg = null; nestBase = null; boardDirty = true; wallsDirty = true;
+    bg = null; nestBase = null; paperC = null; boardDirty = true; wallsDirty = true;
   }
 
   // ---------- Sound (off until turned on) ----------
@@ -2170,9 +2178,88 @@
     for (const side of [-1, 1]) for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(side * 0.44 * s, 0.26 * s + k * 0.04 * s); g.lineTo(side * 0.95 * s, 0.2 * s + k * 0.13 * s); g.stroke(); }
     g.restore();
   }
-  // Erwu from above: curled like a croissant, chin on her paws, tail wrapped round.
-  // She breathes slowly, flicks an ear now and then, and curls up tighter as the night goes on.
+  // ---------- Erwu, painted: the very same cat as in Bloom ----------
+  // Her atlas is Bloom's, copied by tools/sync-erwu.cjs; Bloom stays the source of truth.
+  // Until it has loaded, or if it can't be decoded, the drawn cat below stands in.
+  const ERWU_ART = typeof ErwuArt === 'object' ? ErwuArt : null;
+  const erwuImg = { img: new Image(), ready: false }, erwuLit = new Map();
+  if (ERWU_ART) {
+    erwuImg.img.onload = () => { erwuImg.ready = true; erwuLit.clear(); };
+    erwuImg.img.src = ERWU_ART.src;
+  }
+  // Bloom paints her in afternoon sun. Here she is relit for the evening: warm where the
+  // candle reaches her from the lower left, dusky plum on the far side, deeper as night falls.
+  function litPose(name, night) {
+    const key = name + ':' + night;
+    if (erwuLit.has(key)) return erwuLit.get(key);
+    const [sx, sy, w, h] = ERWU_ART.frames[name], k = night / 4;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    g.filter = `saturate(${0.8 - k * 0.15})`; // colour quietens after dark (ignored where unsupported)
+    g.drawImage(erwuImg.img, sx, sy, w, h, 0, 0, w, h);
+    g.filter = 'none';
+    g.globalCompositeOperation = 'multiply';
+    const lg = g.createLinearGradient(0, h, w, 0);
+    lg.addColorStop(0, `rgb(255, ${Math.round(248 - k * 8)}, ${Math.round(240 - k * 14)})`);
+    lg.addColorStop(1, `rgb(${Math.round(228 - k * 36)}, ${Math.round(222 - k * 40)}, ${Math.round(236 - k * 28)})`);
+    g.fillStyle = lg; g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'destination-in';
+    g.drawImage(erwuImg.img, sx, sy, w, h, 0, 0, w, h);
+    erwuLit.set(key, c);
+    return c;
+  }
+  // Her moods, as Bloom's poses: asleep she is curled up; a piece held close makes her look
+  // up from a loaf; a wish or a good layer makes her sit up content; a yawn is a big stretch.
+  const erwuPose = { cur: 'curl', prev: null, t: 1, at: 0 };
+  function poseFor(o) {
+    if (o.stretch > 0.25 || o.yawn > 0.35) return 'stretch';
+    if (o.happy > 0.3) return 'sit-content';
+    if (o.perk > 0.5) return 'loaf';
+    return 'curl';
+  }
   function drawErwu(g, R, now, o) {
+    if (!ERWU_ART || !erwuImg.ready) return drawErwuDrawn(g, R, now, o);
+    const want = poseFor(o), ps = erwuPose;
+    ps.t = Math.min(1, ps.t + Math.max(0, Math.min(0.1, (now - ps.at) / 1000)) / 0.35); ps.at = now;
+    if (want !== ps.cur) { ps.prev = ps.cur; ps.cur = want; ps.t = reduced ? 1 : 0; }
+    // one scale for every pose, so she is the same size whatever she's doing
+    const k = R * 1.9 / ERWU_ART.frames.curl[2], ground = R * 0.42, night = Math.round(dusk * 4);
+    const breathe = reduced ? 0 : Math.sin(now / 1700) * 0.02;
+    g.save();
+    if (o.turn) { g.rotate(o.turn); const sk = 1 + Math.sin(o.turnT * Math.PI) * 0.12; g.scale(sk, sk); }
+    const sc = (1 + o.bounce * 0.04) * (1 - (o.curl || 0) * 0.04);
+    g.scale(sc, sc);
+    // a soft contact shadow on the cushion
+    g.save(); g.translate(0, ground - R * 0.04); g.scale(1, 0.3);
+    const sh = g.createRadialGradient(0, 0, 0, 0, 0, R * 0.95);
+    sh.addColorStop(0, 'rgba(58, 40, 60, 0.3)'); sh.addColorStop(1, 'rgba(58, 40, 60, 0)');
+    g.fillStyle = sh; dot(g, 0, 0, R * 0.95); g.restore();
+    const pose = (name, alpha) => {
+      if (alpha <= 0) return;
+      const f = ERWU_ART.frames[name], [, , w, h, ax, ay] = f, img = litPose(name, night);
+      g.save(); g.translate(0, ground); g.scale(1, 1 + breathe); g.globalAlpha *= alpha;
+      g.drawImage(img, -ax * k, -ay * k, w * k, h * k);
+      g.restore();
+    };
+    const e = easeInOut(ps.t);
+    if (ps.prev && e < 1) pose(ps.prev, 1 - e);
+    pose(ps.cur, ps.prev ? e : 1);
+    // purr: soft ripples round her while she kneads
+    if (o.knead > 0) {
+      g.strokeStyle = `rgba(126, 97, 121, ${0.35 * o.knead})`; g.lineWidth = 1.2;
+      for (let i = 0; i < 3; i++) {
+        const ph = (now / 500 + i / 3) % 1;
+        g.globalAlpha = 1 - ph;
+        g.beginPath(); g.arc(0, 0, R * (1.05 + ph * 0.3), -1.2, 0.4); g.stroke();
+      }
+      g.globalAlpha = 1;
+    }
+    g.restore();
+  }
+  // The drawn stand-in: Erwu from above, curled like a croissant, chin on her paws, tail
+  // wrapped round. She breathes slowly, flicks an ear now and then, and curls up tighter as
+  // the night goes on.
+  function drawErwuDrawn(g, R, now, o) {
     const s = R * 0.6, curl = o.curl || 0;
     const breathe = reduced ? 0 : Math.sin(now / 1700) * 0.028;
     g.save();
@@ -2324,8 +2411,11 @@
       g.strokeStyle = hash(i, 6) > 0.5 ? 'rgba(255, 250, 240, 0.35)' : 'rgba(140, 108, 84, 0.12)'; g.lineWidth = 0.8;
       line(g, [x, y], [x + l, y + (hash(i, 7) - 0.5) * 2]);
     }
+    // evening already: the lamp makes a warm pool round the nest, and the corners of the
+    // room go dusky plum. (Bloom is the same book in the afternoon, lit from the upper left.)
+    g.fillStyle = 'rgba(96, 70, 98, 0.07)'; g.fillRect(0, 0, W, H);
     const gr = g.createRadialGradient(L.cx, L.cy, L.R * 0.4, L.cx, L.cy, Math.max(W, H) * 0.75);
-    gr.addColorStop(0, 'rgba(255, 240, 214, 0.7)'); gr.addColorStop(0.45, 'rgba(255, 240, 214, 0.18)'); gr.addColorStop(1, 'rgba(120, 90, 110, 0.12)');
+    gr.addColorStop(0, 'rgba(255, 236, 204, 0.72)'); gr.addColorStop(0.42, 'rgba(255, 236, 204, 0.16)'); gr.addColorStop(1, 'rgba(84, 60, 98, 0.2)');
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
     // a few sprigs of lavender and leaves resting at the edges
     sprig(g, 4, L.cy + L.R * 0.3, 80, 0.45, 'lavender');
@@ -2334,6 +2424,39 @@
     sprig(g, W, L.cy - L.R * 0.2, 76, -0.9, 'lavender');
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.fillStyle = noisePattern(g); g.fillRect(0, 0, c.width, c.height);
+    return c;
+  }
+  // The page's deckled paper edge, the same as Bloom's: a rounded inset whose border wanders a
+  // little, with pigment pooled just inside it, as where a wash meets dry paper. The margin is
+  // the shared cream page both games are painted on; the night never reaches it.
+  let paperC = null;
+  function paintPaperEdge() {
+    const c = document.createElement('canvas');
+    c.width = canvas.width; c.height = canvas.height;
+    const g = c.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const inset = Math.min(W, H) * 0.028, rad = Math.min(W, H) * 0.07, w = W - inset * 2, h = H - inset * 2;
+    const per = 2 * (w + h), pts = [], wob = [];
+    for (let i = 0; i < 6; i++) wob.push([hash(i, 31) * TAU, 0.6 + hash(i, 32) * 1.4, 2 + hash(i, 33) * 3]);
+    for (let d = 0, i = 0; d < per; d += 7, i++) {
+      // walk the rounded rectangle, pushed in and out by a few slow waves and some grain
+      let x, y, nx, ny;
+      if (d < w) { x = inset + d; y = inset; nx = 0; ny = 1; }
+      else if (d < w + h) { x = inset + w; y = inset + d - w; nx = -1; ny = 0; }
+      else if (d < 2 * w + h) { x = inset + w - (d - w - h); y = inset + h; nx = 0; ny = -1; }
+      else { x = inset; y = inset + h - (d - 2 * w - h); nx = 1; ny = 0; }
+      const cx = Math.max(inset + rad, Math.min(W - inset - rad, x)), cy = Math.max(inset + rad, Math.min(H - inset - rad, y));
+      if (cx !== x && cy !== y) { const a = Math.atan2(y - cy, x - cx); x = cx + Math.cos(a) * rad; y = cy + Math.sin(a) * rad; nx = -Math.cos(a); ny = -Math.sin(a); }
+      let off = (hash(i, 34) - 0.5) * 1.6;
+      for (const [ph, f, amp] of wob) off += Math.sin(ph + d / per * TAU * f * 6) * amp * 0.32;
+      pts.push([x + nx * off, y + ny * off]);
+    }
+    const trace = () => { g.beginPath(); g.moveTo(...pts[0]); for (const q of pts) g.lineTo(...q); g.closePath(); };
+    trace(); g.rect(W, 0, -W, H);
+    g.fillStyle = PAGE; g.fill('evenodd');
+    trace(); g.clip();
+    g.strokeStyle = 'rgba(120, 90, 90, 0.16)'; g.lineWidth = 5; trace(); g.stroke();
+    g.strokeStyle = 'rgba(120, 90, 90, 0.1)'; g.lineWidth = 14; trace(); g.stroke();
     return c;
   }
   function paintNestBase() {
@@ -2453,7 +2576,7 @@
     // the room dims gently; the nest keeps its own warm light
     const vg = g.createRadialGradient(CX, CY, boardR * 0.8, CX, CY, Math.hypot(W, H) * 0.62);
     vg.addColorStop(0, `rgba(70, 44, 72, ${dusk * 0.08})`);
-    vg.addColorStop(1, `rgba(46, 32, 70, ${0.04 + dusk * 0.36})`);
+    vg.addColorStop(1, `rgba(46, 32, 70, ${0.1 + dusk * 0.34})`);
     g.fillStyle = vg; g.fillRect(0, 0, W, H);
     // moonlight falling across the cloth in four window panes
     if (dusk > 0.05) {
@@ -2473,7 +2596,7 @@
       }
     }
     // one candle, off to the side and partly out of view, like it was just set down there
-    drawCandle(g, Math.max(8, CX - boardR * 1.2 - 18), CY + boardR * 0.98, candleOn, now);
+    drawCandle(g, Math.max(30, CX - boardR * 1.2 - 18), CY + boardR * 0.98, candleOn, now);
     // fireflies drifting through the room late in the night
     if (dusk > 0.45 && !reduced) {
       const k = Math.min(1, (dusk - 0.45) * 2.5), t = now / 1000;
@@ -2809,6 +2932,8 @@
     ctx.drawImage(bg, 0, 0);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     drawNightRoom(now);
+    if (!paperC) paperC = paintPaperEdge();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(paperC, 0, 0); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     drawNestBase();
     // how far the game's own furniture (basket, labels, goals) has faded in
     const hud = mode === 'title' ? 0 : mode === 'intro' ? easeInOut(Math.min(1, intro)) : 1;
@@ -3225,6 +3350,7 @@
       tin: () => openTin(),
       place: (i, r, s) => { if (state === 'play' && held(i) && fits(held(i), r, s)) { place(i, r, s); return true; } return false; },
       fetch: () => fetchPieces(),
+      cat: (k, v) => { cat[k] = v; return erwuPose.cur; },
       night: (n) => { night = n; bg = null; nestBase = null; makeGoals(); newWish(false); dealTray(); updateHud(); },
       // how much of each built wall leaves the straw showing, sampled round three circles
       coverage: () => walls.map((w) => {
